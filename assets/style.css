@@ -1,0 +1,174 @@
+/* ================= MMT 天賦原理 — 樣式 ================= */
+:root{
+  --bg:#0e1020; --bg2:#161a34; --panel:rgba(255,255,255,.045);
+  --panel-solid:#1b2040; --line:rgba(255,255,255,.10);
+  --text:#eef0fb; --muted:#a6acce; --gold:#e6c473; --accent:#8a7bff;
+  --wind:#6aa9d9; --fire:#e0715a; --water:#4fb0a5; --earth:#d3a34e;
+  --radius:16px; --shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; color:var(--text);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+  background:radial-gradient(1200px 700px at 15% -10%,#26224f 0%,transparent 55%),
+             radial-gradient(1000px 700px at 100% 0%,#153043 0%,transparent 50%),
+             linear-gradient(160deg,var(--bg),var(--bg2));
+  min-height:100vh; line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+.bg-orbs{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.bg-orbs span{position:absolute;border-radius:50%;filter:blur(70px);opacity:.28}
+.bg-orbs span:nth-child(1){width:320px;height:320px;background:#7b6cff;left:-60px;top:120px}
+.bg-orbs span:nth-child(2){width:280px;height:280px;background:#3fa0b0;right:-40px;top:40px}
+.bg-orbs span:nth-child(3){width:360px;height:360px;background:#c98a5a;left:40%;bottom:-140px}
+
+.site-header{position:relative;z-index:2;padding:26px 20px 6px;max-width:1080px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{font-size:30px;color:var(--gold);text-shadow:0 0 18px rgba(230,196,115,.6)}
+.brand h1{margin:0;font-size:22px;letter-spacing:2px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px;letter-spacing:1px}
+
+.container{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:14px 18px 60px}
+
+/* ---- 輸入區 ---- */
+.input-panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 26px;backdrop-filter:blur(8px);box-shadow:var(--shadow);margin-top:14px;
+}
+.input-panel h2{margin:0 0 6px;font-size:20px;letter-spacing:1px}
+.input-sub{margin:0 0 20px;color:var(--muted);font-size:14px}
+.form-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr 1.4fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field span{font-size:12.5px;color:var(--muted);letter-spacing:.5px}
+.field select{
+  appearance:none;background:var(--panel-solid) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%23a6acce' stroke-width='1.6'/></svg>") no-repeat right 12px center;
+  color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 30px 11px 12px;
+  font-size:15px;font-family:inherit;cursor:pointer;transition:border-color .2s;
+}
+.field select:focus{outline:none;border-color:var(--accent)}
+.field option:disabled{color:#555}
+.btn-generate{
+  margin-top:22px;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;
+  font-size:16px;font-weight:700;letter-spacing:2px;color:#1a1630;
+  background:linear-gradient(100deg,var(--gold),#f0d693);
+  box-shadow:0 10px 30px rgba(230,196,115,.32);transition:transform .12s,box-shadow .2s;
+}
+.btn-generate:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(230,196,115,.42)}
+.btn-generate:active{transform:translateY(0)}
+
+/* ---- 報告 ---- */
+.report{margin-top:26px}
+.report-header{text-align:center;padding:14px 0 6px}
+.report-header h2{margin:0;font-size:24px;letter-spacing:1px}
+.report-header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+.report-section{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 22px 24px;margin-top:18px;box-shadow:var(--shadow);
+}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;
+  border-bottom:1px solid var(--line);padding-bottom:12px}
+.section-head h3{margin:0;font-size:18px;letter-spacing:1px}
+.section-head h3::before{content:"✦ ";color:var(--gold)}
+.section-head span{color:var(--muted);font-size:13px}
+
+/* 徽章 */
+.overview-cards{display:flex;flex-direction:column;gap:16px}
+.ov-group h5{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.ov-row{display:flex;flex-wrap:wrap;gap:10px}
+.badge{
+  position:relative;min-width:88px;padding:10px 12px 9px;border-radius:12px;text-align:center;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 26%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);
+}
+.badge-label{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.badge-num{display:block;font-size:26px;font-weight:800;line-height:1.1;color:#fff}
+.badge-name{display:block;font-size:13px;margin-top:1px}
+.badge-elem{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+
+/* 能量 */
+.energy-wrap{display:flex;flex-direction:column;gap:14px}
+.energy-row{padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:color-mix(in srgb,var(--c) 6%,transparent)}
+.energy-row.high{border-color:color-mix(in srgb,var(--c) 60%,transparent)}
+.energy-row.zero{opacity:.92;border-style:dashed}
+.energy-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.energy-name{font-weight:700}
+.energy-pct{font-size:13px;color:var(--muted)}
+.energy-pct b{color:var(--c)}
+.energy-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);margin:8px 0 4px;overflow:hidden}
+.energy-bar span{display:block;height:100%;border-radius:6px;background:var(--c)}
+.energy-detail{font-size:13px;color:var(--muted);margin-top:6px}
+.energy-detail .et-traits{margin:2px 0;color:var(--text)}
+.energy-detail .et-task{margin:2px 0}
+
+/* 天賦牌詳細 */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tcard{border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 10%,transparent),transparent);
+  border-left:4px solid var(--c)}
+.tcard-head{display:flex;align-items:center;gap:12px}
+.tcard-num{font-size:34px;font-weight:800;color:var(--c);line-height:1;min-width:44px;text-align:center}
+.tcard-title{flex:1}
+.tcard-title strong{font-size:17px}
+.tcard-kw{color:var(--muted);font-size:13px;margin-left:4px}
+.tcard-tag{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.tcard-role{display:inline-block;margin:8px 0 2px;font-size:11.5px;color:var(--gold);
+  border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:20px;padding:2px 10px}
+.tcard-meta{font-size:12.5px;color:var(--muted);margin:6px 0 8px}
+.tcard-sec{margin-top:8px}
+.tcard-sec h5{margin:0 0 5px;font-size:12.5px;color:var(--muted);letter-spacing:.5px}
+.tcard-sec.shadow h5{color:var(--fire)}
+.tcard-sec p{margin:0;font-size:13.5px}
+.tags{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.tags li{font-size:12.5px;padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+.tcard-sec.shadow .tags li{background:color-mix(in srgb,var(--fire) 12%,transparent);border-color:color-mix(in srgb,var(--fire) 30%,transparent)}
+.tcard-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px;
+  border-top:1px solid var(--line);padding-top:12px}
+.tcard-grid h6{margin:0 0 3px;font-size:11.5px;color:var(--gold);letter-spacing:.5px}
+.tcard-grid p{margin:0;font-size:12.5px;color:var(--muted)}
+
+/* 導師陰影家族 */
+.ms-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ms-box{border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:rgba(255,255,255,.03)}
+.ms-box.shadow{border-color:color-mix(in srgb,var(--fire) 34%,transparent);
+  background:color-mix(in srgb,var(--fire) 7%,transparent)}
+.ms-box h4{margin:0 0 8px;font-size:16px;color:var(--gold)}
+.ms-box.shadow h4{color:var(--fire)}
+.ms-box p{margin:4px 0;font-size:13.5px}
+.ms-arche{font-size:14.5px}
+.ms-pursue,.ms-complex{color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin-top:8px !important;font-style:italic}
+.fam-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.fam-badges .badge{min-width:66px;padding:7px 8px}
+.fam-badges .badge-num{font-size:20px}
+
+/* 年度策略 */
+.year-box{border:1px solid color-mix(in srgb,var(--gold) 30%,transparent);border-radius:12px;
+  background:color-mix(in srgb,var(--gold) 8%,transparent);padding:16px 18px}
+.year-head{font-size:16px;font-weight:700}
+.year-head b{color:var(--gold);font-size:22px}
+.year-body p{margin:6px 0;font-size:14px}
+
+/* 步驟 */
+.steps{counter-reset:none;margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.steps li{font-size:13.5px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
+.step-tag{display:inline-block;font-size:11px;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
+  border-radius:6px;padding:1px 7px;margin-right:8px;letter-spacing:.5px}
+
+.site-footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
+.site-footer .ip{opacity:.7;margin-top:4px}
+
+/* RWD */
+@media (max-width:820px){
+  .form-grid{grid-template-columns:1fr 1fr}
+  .tcards{grid-template-columns:1fr}
+  .ms-grid{grid-template-columns:1fr}
+  .tcard-grid{grid-template-columns:1fr}
+}
+@media (max-width:480px){
+  .form-grid{grid-template-columns:1fr 1fr}
+  .brand h1{font-size:19px}
+  .report-header h2{font-size:20px}
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MMT 天賦原理 · 自動生成天賦盤</title>
+  <meta name="description" content="輸入生日，自動生成 MMT 天賦原理個人分析：六張天賦牌、導師／陰影、四大能量與年度策略。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <div>
+        <h1>MMT 天賦原理</h1>
+        <p>Mercury Mental Thinking · 自動生成天賦盤</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="input-panel">
+      <h2>輸入你的西元生日</h2>
+      <p class="input-sub">系統會依 MMT 天賦原理，自動計算你的六張天賦牌、導師與陰影、四大能量與年度策略。</p>
+      <div class="form-grid">
+        <label class="field">
+          <span>出生年</span>
+          <select id="in-year"></select>
+        </label>
+        <label class="field">
+          <span>月</span>
+          <select id="in-month"></select>
+        </label>
+        <label class="field">
+          <span>日</span>
+          <select id="in-day"></select>
+        </label>
+        <label class="field">
+          <span>查詢年份（年度策略）</span>
+          <select id="in-target"></select>
+        </label>
+      </div>
+      <button id="btn-generate" class="btn-generate">✦ 生成我的天賦盤</button>
+    </section>
+
+    <div id="report" class="report"></div>
+
+    <footer class="site-footer">
+      <p>本工具依個人上課整理（MMT1階-直版天賦原理）製作，僅供自我覺察與個人使用。</p>
+      <p class="ip">天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。</p>
+    </footer>
+  </main>
+
+  <script src="js/calc.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
