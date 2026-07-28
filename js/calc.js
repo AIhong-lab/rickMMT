@@ -251,6 +251,33 @@
     // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張），已依實際排盤校準。
     var energyCards = talentCards.concat([m]);
 
+    // 完全牌：同一號碼在六張天賦牌中出現兩張以上（優勢加成、完全人格傾向）。
+    var countMap = {};
+    talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
+    var completeCards = Object.keys(countMap)
+      .map(Number)
+      .filter(function (n) { return countMap[n] >= 2; })
+      .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
+      .map(function (n) { return { num: n, count: countMap[n] }; });
+
+    // 家族關係：天賦牌 + 導師牌 觸及到的家族（陰影不算）。
+    var presenceSet = {};
+    talentCards.concat([m]).forEach(function (n) { presenceSet[n] = true; });
+    var familyGroups = [];
+    Object.keys(FAMILIES).forEach(function (fid) {
+      var members = FAMILIES[fid];
+      var present = members.filter(function (n) { return presenceSet[n]; });
+      if (present.length === 0) return;
+      familyGroups.push({
+        id: Number(fid),
+        members: members.slice(),
+        present: present,
+        missing: members.filter(function (n) { return !presenceSet[n]; }),
+        complete: present.length === members.length
+      });
+    });
+    familyGroups.sort(function (a, b) { return b.present.length - a.present.length || a.id - b.id; });
+
     return {
       birthday: { year: year, month: month, day: day },
       targetYear: targetYear,
@@ -263,6 +290,8 @@
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
       energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
+      completeCards: completeCards,      // 完全牌（重複出現的天賦號）
+      familyGroups: familyGroups,        // 家族關係
       elementOf: ELEMENT_OF
     };
   }
