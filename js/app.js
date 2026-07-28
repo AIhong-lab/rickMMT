@@ -125,22 +125,36 @@
 
   // 完全牌區塊
   function completeSection(result) {
-    var cc = result.completeCards || [];
+    var cc = result.completeCards || [];       // 天賦∩導師
+    var pc = result.prominentCards || [];       // ≥2 張（非完全）
     var meta = D.COMPLETE_META || {};
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
+
     if (!cc.length) {
-      body += '<p class="hint">這張盤沒有重複出現的天賦號（無明顯完全牌）。可留意天賦與導師是否重疊。</p>';
+      body += '<p class="hint">此盤天賦與導師未重疊，<b>沒有完全牌</b>（導師 ' + result.master + ' 未出現在天賦牌中）。</p>';
     } else {
-      body += '<div class="ov-row">' + cc.map(function (c) {
-        return talentBadge(c.num, '完全 · ' + c.count + ' 張');
+      body += '<div class="ov-row">' + cc.map(function (n) {
+        return talentBadge(n, '完全牌');
       }).join('') + '</div>';
-      body += cc.map(function (c) {
-        var t = D.TALENTS[c.num];
+      body += cc.map(function (n) {
+        var t = D.TALENTS[n];
         if (!t) return '';
-        return '<div class="cm-line"><b>完全 ' + c.num + '　' + t.name + '「' + t.keyword + '」</b>' +
-          (t.career ? '<span>' + esc(t.career) + '</span>' : '') + '</div>';
+        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（天賦＝導師）</b>' +
+          (t.career ? '<span>' + esc(formatPoints(t.career).join('、')) + '</span>' : '') + '</div>';
       }).join('');
     }
+
+    // 比較明顯（非完全牌）
+    if (pc.length) {
+      body += '<div class="cm-prominent">' +
+        '<h5>比較明顯的號碼（非完全牌）</h5>' +
+        '<div class="ov-row">' + pc.map(function (c) {
+          return talentBadge(c.num, c.count + ' 張');
+        }).join('') + '</div>' +
+        '<p class="hint">' + esc(meta.prominentNote || '') + '</p>' +
+      '</div>';
+    }
+
     if (meta.notes && meta.notes.length) {
       body += '<ul class="cm-notes">' + meta.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>';
     }
@@ -272,6 +286,12 @@
     var innerLabels = ['第一張', '第二張', '第三張'];
     var outerLabels = ['第四張', '第五張', '第六張'];
 
+    var boundaryGroup = (result.boundaryCard != null)
+      ? '<div class="ov-group"><h5>天地交界（多一張天賦牌）</h5><div class="ov-row">' +
+          talentBadge(result.boundaryCard, '交界') +
+        '</div></div>'
+      : '';
+
     var overviewBadges =
       '<div class="overview-cards">' +
         '<div class="ov-group"><h5>內在三張（自身思維設計）</h5><div class="ov-row">' +
@@ -280,6 +300,7 @@
         '<div class="ov-group"><h5>外在三張（與世界的相處 · 連號）</h5><div class="ov-row">' +
           result.outer.map(function (n, i) { return talentBadge(n, outerLabels[i]); }).join('') +
         '</div></div>' +
+        boundaryGroup +
         '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
           talentBadge(result.master, '導師') + talentBadge(result.shadow, '陰影') +
         '</div></div>' +
@@ -296,15 +317,16 @@
     var detailCards = '';
     result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i]); });
     result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i]); });
+    if (result.boundaryCard != null) detailCards += talentCardDetail(result.boundaryCard, '天地交界牌');
 
     var html =
       header +
       '<div class="report-actions"><button id="btn-print" class="btn-print">🖨️ 列印 / 存成 PDF</button></div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '重複出現、能量完全發揮的號碼', completeSection(result)) +
+      sectionCard('完全牌', '天賦與導師重疊的號碼（附：比較明顯的號碼）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
-      sectionCard('六張天賦牌 · 詳細解讀', '內在 3 張 + 外在 3 張（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
+      sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
       sectionCard('年度策略', '今年的心智策略', yearSection(result)) +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection());

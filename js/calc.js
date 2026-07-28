@@ -246,15 +246,25 @@
     var outer = outerCards(month, day);
     var talentCards = [c1, c2, c3, outer[0], outer[1], outer[2]];
 
+    // 天地交界：1/1 多一張 13、12/31 多一張 1（會多一張天賦牌）。
+    var boundaryCard = null;
+    if (month === 1 && day === 1) boundaryCard = 13;
+    else if (month === 12 && day === 31) boundaryCard = 1;
+    if (boundaryCard !== null) talentCards.push(boundaryCard);
+
     var m = master(year, month, day);
 
-    // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張），已依實際排盤校準。
+    // 四大能量分母 = 天賦牌 + 導師牌，已依實際排盤校準。
     var energyCards = talentCards.concat([m]);
 
-    // 完全牌：同一號碼在六張天賦牌中出現兩張以上（優勢加成、完全人格傾向）。
+    // 完全牌：同一號碼「天賦與導師重疊」（導師號同時出現在天賦牌）。
+    var completeCards = [];
+    if (talentCards.indexOf(m) >= 0) completeCards.push(m);
+
+    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，優勢較明顯。
     var countMap = {};
     talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
-    var completeCards = Object.keys(countMap)
+    var prominentCards = Object.keys(countMap)
       .map(Number)
       .filter(function (n) { return countMap[n] >= 2; })
       .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
@@ -281,16 +291,18 @@
     return {
       birthday: { year: year, month: month, day: day },
       targetYear: targetYear,
-      talentCards: talentCards,          // 六張天賦牌 [第1..第6]
+      talentCards: talentCards,          // 天賦牌（1/1、12/31 為 7 張）
       inner: [c1, c2, c3],               // 內在三張
       outer: outer,                      // 外在三張（連號）
+      boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
       master: m,                         // 導師牌 (1~9)
       shadow: shadow(m),                 // 陰影牌
       family: family(m),                 // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
       energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
-      completeCards: completeCards,      // 完全牌（重複出現的天賦號）
+      completeCards: completeCards,      // 完全牌（天賦∩導師）
+      prominentCards: prominentCards,    // 比較明顯（≥2 張，非完全牌）
       familyGroups: familyGroups,        // 家族關係
       elementOf: ELEMENT_OF
     };
