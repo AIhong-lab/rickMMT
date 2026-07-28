@@ -39,22 +39,54 @@
 
   function esc(s) { return String(s == null ? '' : s); }
 
-  // 文字區塊：非空才輸出
-  function textSec(label, value, cls) {
-    if (!value) return '';
-    return '<div class="tcard-sec ' + (cls || '') + '"><h5>' + label + '</h5><p>' + esc(value) + '</p></div>';
+  // ---- 合理化排版：把以空白分隔的要點切成乾淨條列 ----
+  var PH = ''; // 括號內空白暫存符
+  function formatPoints(value) {
+    if (value == null) return [];
+    var s = Array.isArray(value) ? value.join(' ') : String(value);
+    s = s.replace(/　/g, ' ').replace(/[ \t]+/g, ' ').trim();
+    if (!s) return [];
+    // 保護括號／引號內空白
+    s = s.replace(/[（(【「\[][^（()【「\[\])）】」\]]*[)）】」\]]/g, function (m) {
+      return m.split(' ').join(PH);
+    });
+    s = s.replace(/ (?=\d+[.、)])/g, '\n'); // 數字清單標記前斷
+    s = s.replace(/ (?=#)/g, '\n');          // hashtag 前斷
+    s = s.replace(/ /g, '\n');               // 其餘空白斷
+    var parts = s.split('\n').map(function (x) {
+      return x.split(PH).join(' ').trim();
+    }).filter(Boolean);
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (/^\d+[.、)]$/.test(parts[i]) && i + 1 < parts.length) {
+        out.push(parts[i] + ' ' + parts[++i]);
+      } else {
+        out.push(parts[i]);
+      }
+    }
+    return out;
   }
-  // 標籤列區塊：非空才輸出
-  function tagSec(label, arr, cls) {
-    if (!arr || !arr.length) return '';
-    return '<div class="tcard-sec ' + (cls || '') + '"><h5>' + label + '</h5>' + listHTML(arr) + '</div>';
+
+  function ptsHTML(arr, cls) {
+    if (!arr.length) return '';
+    if (arr.length === 1) return '<p class="' + (cls || '') + '">' + esc(arr[0]) + '</p>';
+    return '<ul class="pts ' + (cls || '') + '">' +
+      arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
   }
-  // 附說明的欄位（潛意識/財富心智/天賦變現）
+
+  // 區塊：非空才輸出，內容自動整形成條列
+  function sec(label, value, cls) {
+    var pts = formatPoints(value);
+    if (!pts.length) return '';
+    return '<div class="tcard-sec ' + (cls || '') + '"><h5>' + label + '</h5>' + ptsHTML(pts, cls) + '</div>';
+  }
+  // 有「主標＋說明」的欄位（潛意識/財富心智/天賦變現）
   function pairCell(label, main, desc) {
-    if (!main && !desc) return '';
-    return '<div><h6>' + label + '</h6>' +
-      (main ? '<p class="pc-main">' + esc(main) + '</p>' : '') +
-      (desc ? '<p class="pc-desc">' + esc(desc) + '</p>' : '') + '</div>';
+    var m = formatPoints(main), d = formatPoints(desc);
+    if (!m.length && !d.length) return '';
+    return '<div class="pc"><h6>' + label + '</h6>' +
+      (m.length ? ptsHTML(m, 'pc-main') : '') +
+      (d.length ? ptsHTML(d, 'pc-desc') : '') + '</div>';
   }
 
   function talentCardDetail(num, roleLabel) {
@@ -76,15 +108,17 @@
           '<span class="tcard-tag">' + ELEMENT_EMOJI[t.element] + t.element + '能量 · ' + t.face + '</span>' +
         '</div>' +
         (roleLabel ? '<div class="tcard-role">' + roleLabel + '</div>' : '') +
-        textSec('底層邏輯 · 占星（行為模式）', t.astrology) +
-        textSec('底層邏輯 · 神話人物', t.myth) +
-        tagSec('天賦優勢', t.advantage) +
-        tagSec('非健康能量（優勢過頭）', t.unhealthy, 'shadow') +
-        textSec('討論「像 / 不像」', t.likeness) +
-        textSec('應用 · 職場（含完全人格）', t.career) +
-        textSec('應用 · 兩性', t.love) +
-        textSec('備註', t.note) +
-        textSec('總結', t.summary) +
+        '<div class="tcard-cols">' +
+          sec('占星（行為模式）', t.astrology, 'astro') +
+          sec('神話人物', t.myth, 'myth') +
+        '</div>' +
+        sec('天賦優勢', t.advantage, 'adv') +
+        sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow') +
+        sec('討論「像 / 不像」', t.likeness) +
+        sec('應用 · 職場（含完全人格）', t.career) +
+        sec('應用 · 兩性', t.love) +
+        sec('備註', t.note) +
+        sec('總結', t.summary) +
         (grid ? '<div class="tcard-grid">' + grid + '</div>' : '') +
       '</div>';
   }
@@ -212,7 +246,7 @@
         (t ?
           '<div class="year-body">' +
             '<p><b>' + t.name + '「' + t.keyword + '」</b> · ' + ELEMENT_EMOJI[t.element] + t.element + '能量</p>' +
-            '<p>今年可有意識地運用「' + (t.advantage || []).slice(0, 4).join('、') + '」的心智策略。</p>' +
+            '<p>今年可有意識地運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' +
             '<p class="hint">計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
           '</div>' : '') +
       '</div>';
