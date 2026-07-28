@@ -1735,32 +1735,49 @@ body{
       '</section>';
   }
 
-  // ---- 依問題判斷主題，決定聚焦欄位 ----
+  // ---- 依問題判斷主題，決定聚焦欄位（可同時命中多個主題）----
+  var FOCUS_NAME = { career: '職場', love: '兩性', wealth: '財富心智', monetize: '天賦變現' };
   var TOPICS = [
     { key: 'love', label: '兩性 · 感情', focus: ['love'],
-      kw: ['感情', '愛情', '戀愛', '兩性', '婚姻', '曖昧', '伴侶', '對象', '交往', '分手', '桃花', '另一半', '老公', '老婆', '男友', '女友', '喜歡的人', '喜歡'] },
-    { key: 'wealth', label: '財富 · 金錢', focus: ['wealth', 'monetize'],
-      kw: ['財富', '金錢', '理財', '投資', '收入', '賺錢', '財務', '變現', '存錢', '財運', '薪水', '報酬', '定價', '收費', '錢'] },
-    { key: 'career', label: '工作 · 事業', focus: ['career'],
-      kw: ['工作', '職場', '事業', '職涯', '創業', '上班', '老闆', '公司', '轉職', '職業', '產業', '生意', '業務', '升遷', '找工作', '適合', '發展'] },
+      kw: ['感情', '愛情', '戀愛', '兩性', '婚姻', '曖昧', '伴侶', '對象', '交往', '分手', '桃花', '另一半',
+           '老公', '老婆', '男友', '女友', '喜歡的人', '告白', '追求', '結婚', '離婚', '單身', '脫單', '喜歡'] },
+    { key: 'wealth', label: '財富 · 變現', focus: ['wealth', 'monetize'],
+      kw: ['財富', '金錢', '理財', '投資', '收入', '賺錢', '賺', '財務', '變現', '存錢', '財運', '薪水', '報酬',
+           '定價', '收費', '獲利', '盈利', '被動收入', '現金流', '商業模式', '收益', '營收', '漲價', 'money', '錢'] },
+    { key: 'business', label: '事業 · 副業 · 創業', focus: ['career', 'wealth', 'monetize'],
+      kw: ['副業', '兼職', '斜槓', '接案', '創業', '開店', '做生意', '生意', '自由工作', '自雇', '當老闆',
+           '個人品牌', '自媒體', '經營', '開公司', '第二收入', '轉行', '轉職', '職涯', '事業', '發展方向'] },
+    { key: 'brand', label: '行銷 · 品牌 · AI', focus: ['career', 'monetize'],
+      kw: ['行銷', '品牌', '電商', '團購', '帶貨', '網紅', 'KOL', '粉絲', '流量', '社群', '短影音', '直播',
+           'IG', 'FB', 'YT', 'youtube', '廣告', '曝光', 'AI', '人工智慧', '自動化', '工具', '軟體', '科技', '產品'] },
+    { key: 'career', label: '工作 · 職場', focus: ['career'],
+      kw: ['工作', '職場', '上班', '老闆', '公司', '職業', '產業', '業務', '升遷', '找工作', '適合', '發展',
+           '方向', '同事', '主管', '團隊', '專案', '職務', '該不該', '要不要', '適不適合'] },
     { key: 'family', label: '家庭 · 家族', focus: ['love'],
-      kw: ['家庭', '家人', '家族', '親子', '小孩', '孩子', '父母', '婆媳', '爸媽', '兄弟', '姊妹', '長輩'] },
+      kw: ['家庭', '家人', '家族', '親子', '小孩', '孩子', '父母', '婆媳', '爸媽', '兄弟', '姊妹', '長輩', '教養', '家裡'] },
     { key: 'learning', label: '學習 · 成長', focus: ['career'],
-      kw: ['學習', '成長', '進修', '讀書', '考試', '技能', '證照', '自我成長'] },
+      kw: ['學習', '成長', '進修', '讀書', '考試', '技能', '證照', '自我成長', '精進', '學什麼'] },
     { key: 'emotion', label: '情緒 · 內在', focus: ['love'],
-      kw: ['情緒', '心情', '壓力', '焦慮', '憂鬱', '內耗', '心理', '自我'] }
+      kw: ['情緒', '心情', '壓力', '焦慮', '憂鬱', '內耗', '心理', '覺察', '課題', '迷惘', '迷茫'] }
   ];
   function detectTopic(q) {
     q = (q || '').trim();
-    if (!q) return { key: 'default', label: '', focus: ['career'], hasQuestion: false };
-    for (var i = 0; i < TOPICS.length; i++) {
-      for (var j = 0; j < TOPICS[i].kw.length; j++) {
-        if (q.indexOf(TOPICS[i].kw[j]) >= 0) {
-          return { key: TOPICS[i].key, label: TOPICS[i].label, focus: TOPICS[i].focus, hasQuestion: true };
-        }
+    if (!q) return { label: '', focus: ['career'], hasQuestion: false };
+    var focus = [], labels = [];
+    TOPICS.forEach(function (tp) {
+      var hit = tp.kw.some(function (k) { return q.toLowerCase().indexOf(k.toLowerCase()) >= 0; });
+      if (hit) {
+        labels.push(tp.label);
+        tp.focus.forEach(function (f) { if (focus.indexOf(f) < 0) focus.push(f); });
       }
+    });
+    if (!focus.length) {
+      // 沒對到關鍵字：預設聚焦「職場・變現」（多數提問屬此），仍是有效聚焦。
+      return { label: '綜合（職場・變現）', focus: ['career', 'wealth', 'monetize'], hasQuestion: true, generic: true };
     }
-    return { key: 'general', label: '綜合重點', focus: ['career'], hasQuestion: true, generic: true };
+    var names = focus.map(function (f) { return FOCUS_NAME[f]; })
+      .filter(function (v, i, a) { return a.indexOf(v) === i; });
+    return { label: labels.join('／'), focusNames: names.join('、'), focus: focus, hasQuestion: true };
   }
 
   function render(result, opts) {
@@ -1795,9 +1812,10 @@ body{
     var focusBanner = '';
     if (topic.hasQuestion) {
       var q = esc(opts.question);
+      var names = topic.focusNames || '職場、財富心智、天賦變現';
       focusBanner = topic.generic
-        ? '<div class="focus-banner"><b>🔎 ' + q + '</b><span>未對應到特定主題，顯示綜合重點（可用「感情／工作／財富…」等字詞聚焦）。</span></div>'
-        : '<div class="focus-banner"><b>🔎 ' + q + '</b><span>本次聚焦：' + topic.label + '——報表已把相關內容放到最前面並高亮。</span></div>';
+        ? '<div class="focus-banner"><b>🔎 ' + q + '</b><span>未對應到特定主題，改顯示綜合重點 · 高亮欄位：' + names + '</span></div>'
+        : '<div class="focus-banner"><b>🔎 ' + q + '</b><span>本次聚焦：' + esc(topic.label) + ' · 高亮欄位：' + names + '</span></div>';
     }
     var header =
       '<div class="report-header">' +
