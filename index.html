@@ -43,6 +43,16 @@
           <select id="in-target"></select>
         </label>
       </div>
+      <label class="field field-q">
+        <span>想問的問題（可留空 · 會依主題聚焦顯示）</span>
+        <input id="in-question" type="text" autocomplete="off"
+               placeholder="例如：這份工作適合我嗎？／我的感情課題是什麼？／怎麼變現？">
+      </label>
+      <div class="level-row">
+        <span>顯示詳細度：</span>
+        <label><input type="radio" name="level" value="concise" checked> 精簡</label>
+        <label><input type="radio" name="level" value="full"> 完整</label>
+      </div>
       <button id="btn-generate" class="btn-generate">✦ 生成我的天賦盤</button>
     </section>
 

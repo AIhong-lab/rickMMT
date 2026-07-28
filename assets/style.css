@@ -48,8 +48,25 @@ body{
 }
 .field select:focus{outline:none;border-color:var(--accent)}
 .field option:disabled{color:#555}
+.field-q{margin-top:14px}
+.field-q input{
+  background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;font-size:15px;font-family:inherit;width:100%;
+}
+.field-q input:focus{outline:none;border-color:var(--accent)}
+.field-q input::placeholder{color:#6b7098}
+.level-row{display:flex;align-items:center;gap:16px;margin-top:12px;font-size:13.5px;color:var(--muted)}
+.level-row label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--text)}
+.level-row input{accent-color:var(--gold);cursor:pointer}
+
+.focus-banner{margin-top:14px;padding:12px 16px;border-radius:12px;
+  background:color-mix(in srgb,var(--accent) 14%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);text-align:left}
+.focus-banner b{display:block;font-size:15px;margin-bottom:2px}
+.focus-banner span{font-size:12.5px;color:var(--muted)}
+
 .btn-generate{
-  margin-top:22px;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;
+  margin-top:18px;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;
   font-size:16px;font-weight:700;letter-spacing:2px;color:#1a1630;
   background:linear-gradient(100deg,var(--gold),#f0d693);
   box-shadow:0 10px 30px rgba(230,196,115,.32);transition:transform .12s,box-shadow .2s;
@@ -132,6 +149,34 @@ body{
 .tcard-sec.shadow .pts li::before{background:var(--fire)}
 .tcard-sec.adv .pts li::before{background:#7fd6a0}
 .tcard-sec.shadow .pts li{color:#f0c4bb}
+
+/* 聚焦欄位高亮 */
+.tcard-sec.focus{background:color-mix(in srgb,var(--gold) 9%,transparent);
+  border:1px solid color-mix(in srgb,var(--gold) 34%,transparent);border-radius:10px;padding:10px 12px;margin-top:10px}
+.tcard-sec.focus h5{border-left-color:var(--gold);color:var(--gold)}
+.tcard-sec.focus h5::after{content:' · 聚焦';color:var(--gold);font-size:11px}
+
+/* 展開更多按鈕（僅精簡模式顯示） */
+.tcard-expand{display:none;margin-top:12px;width:100%;padding:8px;cursor:pointer;font-size:12.5px;
+  color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:9px}
+.tcard-expand:hover{background:rgba(255,255,255,.09);color:var(--text)}
+
+/* ===== 精簡模式 ===== */
+.report.concise .tcard-sec.extra,
+.report.concise .tcard-cols.extra{display:none}
+.report.concise .tcard.open .tcard-sec.extra{display:block}
+.report.concise .tcard.open .tcard-cols.extra{display:grid}
+.report.concise .tcard-expand{display:block}
+.report.concise .tcard.open .tcard-expand{color:var(--gold)}
+/* 精簡未展開時，長清單只顯示前幾項 */
+.report.concise .tcard:not(.open) .adv .pts li:nth-child(n+7){display:none}
+.report.concise .tcard:not(.open) .shadow .pts li:nth-child(n+4){display:none}
+.report.concise .tcard:not(.open) .app.focus .pts li:nth-child(n+11){display:none}
+/* 精簡時隱藏較長的輔助文字 */
+.report.concise .cm-notes,
+.report.concise .fam-flow,
+.report.concise .fam-card .hint,
+.report.concise .section-ref{display:none}
 
 /* 占星 / 神話 並排 */
 .tcard-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -247,4 +292,11 @@ body{
   .tcards{grid-template-columns:1fr 1fr}
   .report-header h2,.section-head h3{color:#1a1a2a}
   .tags li{background:#f2f2f5;border-color:#ddd}
+  /* 列印時顯示完整內容 */
+  .report.concise .tcard-sec.extra{display:block !important}
+  .report.concise .tcard-cols.extra{display:grid !important}
+  .report.concise .tcard .pts li{display:list-item !important}
+  .report.concise .cm-notes,.report.concise .fam-flow,
+  .report.concise .fam-card .hint,.report.concise .section-ref{display:block !important}
+  .tcard-expand{display:none !important}
 }

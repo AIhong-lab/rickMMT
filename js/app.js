@@ -74,29 +74,63 @@
       arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
   }
 
-  // 區塊：非空才輸出，內容自動整形成條列
-  function sec(label, value, cls) {
+  // 區塊：非空才輸出。tier = 'keep'（精簡也顯示）或 'extra'（收在展開內）。
+  function sec(label, value, cls, tier, focus) {
     var pts = formatPoints(value);
     if (!pts.length) return '';
-    return '<div class="tcard-sec ' + (cls || '') + '"><h5>' + label + '</h5>' + ptsHTML(pts, cls) + '</div>';
+    var klass = ['tcard-sec', cls || '', tier || 'extra', focus ? 'focus' : ''].join(' ');
+    return '<div class="' + klass + '"><h5>' + label + '</h5>' + ptsHTML(pts, cls) + '</div>';
   }
   // 有「主標＋說明」的欄位（潛意識/財富心智/天賦變現）
-  function pairCell(label, main, desc) {
+  function pairSec(label, main, desc, cls, tier, focus) {
     var m = formatPoints(main), d = formatPoints(desc);
     if (!m.length && !d.length) return '';
-    return '<div class="pc"><h6>' + label + '</h6>' +
+    var klass = ['tcard-sec pc', cls || '', tier || 'extra', focus ? 'focus' : ''].join(' ');
+    return '<div class="' + klass + '"><h5>' + label + '</h5>' +
       (m.length ? ptsHTML(m, 'pc-main') : '') +
       (d.length ? ptsHTML(d, 'pc-desc') : '') + '</div>';
   }
 
-  function talentCardDetail(num, roleLabel) {
+  // focusKeys：本次聚焦的欄位（例如 ['career'] / ['love'] / ['wealth','monetize']）
+  function talentCardDetail(num, roleLabel, focusKeys) {
     var t = D.TALENTS[num];
     if (!t) return '';
+    focusKeys = focusKeys || [];
+    // 該牌是否有此欄位的內容
+    function has(k) {
+      if (k === 'career') return !!formatPoints(t.career).length;
+      if (k === 'love') return !!formatPoints(t.love).length;
+      if (k === 'wealth') return !!(formatPoints(t.wealthMind).length || formatPoints(t.wealthMindDesc).length);
+      if (k === 'monetize') return !!(formatPoints(t.monetize).length || formatPoints(t.monetizeDesc).length);
+      return false;
+    }
+    // 只保留這張牌有內容的聚焦欄位；若都沒有，退回「職場」。
+    var eff = focusKeys.filter(has);
+    if (!eff.length) eff = has('career') ? ['career'] : (has('love') ? ['love'] : []);
+    function foc(k) { return eff.indexOf(k) >= 0; }
+    function tier(k) { return foc(k) ? 'keep' : 'extra'; }
     var color = ELEMENT_COLORS[t.element];
     var tag = (t.numTag ? '（' + t.numTag + '）' : '');
-    var grid = pairCell('潛意識', t.subconscious, t.subconsciousDesc) +
-               pairCell('財富心智（錨定對標）', t.wealthMind, t.wealthMindDesc) +
-               pairCell('天賦變現', t.monetize, t.monetizeDesc);
+
+    var blocks = '' +
+      // 精簡也一定顯示：優勢、非健康
+      sec('天賦優勢', t.advantage, 'adv', 'keep') +
+      sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow', 'keep') +
+      // 應用類：被聚焦的升為 keep 並高亮
+      sec('應用 · 職場（含完全人格）', t.career, 'app', tier('career'), foc('career')) +
+      sec('應用 · 兩性', t.love, 'app', tier('love'), foc('love')) +
+      pairSec('財富心智（錨定對標）', t.wealthMind, t.wealthMindDesc, 'app', tier('wealth'), foc('wealth')) +
+      pairSec('天賦變現', t.monetize, t.monetizeDesc, 'app', tier('monetize'), foc('monetize')) +
+      // 其餘一律收在展開內
+      '<div class="tcard-cols extra">' +
+        sec('占星（行為模式）', t.astrology, 'astro', 'inline') +
+        sec('神話人物', t.myth, 'myth', 'inline') +
+      '</div>' +
+      sec('討論「像 / 不像」', t.likeness, '', 'extra') +
+      pairSec('潛意識', t.subconscious, t.subconsciousDesc, '', 'extra') +
+      sec('備註', t.note, '', 'extra') +
+      sec('總結', t.summary, '', 'extra');
+
     return '' +
       '<div class="tcard" style="--c:' + color + '">' +
         '<div class="tcard-head">' +
@@ -108,18 +142,8 @@
           '<span class="tcard-tag">' + ELEMENT_EMOJI[t.element] + t.element + '能量 · ' + t.face + '</span>' +
         '</div>' +
         (roleLabel ? '<div class="tcard-role">' + roleLabel + '</div>' : '') +
-        '<div class="tcard-cols">' +
-          sec('占星（行為模式）', t.astrology, 'astro') +
-          sec('神話人物', t.myth, 'myth') +
-        '</div>' +
-        sec('天賦優勢', t.advantage, 'adv') +
-        sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow') +
-        sec('討論「像 / 不像」', t.likeness) +
-        sec('應用 · 職場（含完全人格）', t.career) +
-        sec('應用 · 兩性', t.love) +
-        sec('備註', t.note) +
-        sec('總結', t.summary) +
-        (grid ? '<div class="tcard-grid">' + grid + '</div>' : '') +
+        blocks +
+        '<button class="tcard-expand" type="button">展開更多 ▾</button>' +
       '</div>';
   }
 
@@ -273,15 +297,46 @@
     return '<ol class="steps">' + rows + '</ol>';
   }
 
-  function sectionCard(title, subtitle, bodyHTML) {
+  function sectionCard(title, subtitle, bodyHTML, cls) {
     return '' +
-      '<section class="report-section">' +
+      '<section class="report-section ' + (cls || '') + '">' +
         '<div class="section-head"><h3>' + title + '</h3>' + (subtitle ? '<span>' + subtitle + '</span>' : '') + '</div>' +
         bodyHTML +
       '</section>';
   }
 
-  function render(result) {
+  // ---- 依問題判斷主題，決定聚焦欄位 ----
+  var TOPICS = [
+    { key: 'love', label: '兩性 · 感情', focus: ['love'],
+      kw: ['感情', '愛情', '戀愛', '兩性', '婚姻', '曖昧', '伴侶', '對象', '交往', '分手', '桃花', '另一半', '老公', '老婆', '男友', '女友', '喜歡的人', '喜歡'] },
+    { key: 'wealth', label: '財富 · 金錢', focus: ['wealth', 'monetize'],
+      kw: ['財富', '金錢', '理財', '投資', '收入', '賺錢', '財務', '變現', '存錢', '財運', '薪水', '報酬', '定價', '收費', '錢'] },
+    { key: 'career', label: '工作 · 事業', focus: ['career'],
+      kw: ['工作', '職場', '事業', '職涯', '創業', '上班', '老闆', '公司', '轉職', '職業', '產業', '生意', '業務', '升遷', '找工作', '適合', '發展'] },
+    { key: 'family', label: '家庭 · 家族', focus: ['love'],
+      kw: ['家庭', '家人', '家族', '親子', '小孩', '孩子', '父母', '婆媳', '爸媽', '兄弟', '姊妹', '長輩'] },
+    { key: 'learning', label: '學習 · 成長', focus: ['career'],
+      kw: ['學習', '成長', '進修', '讀書', '考試', '技能', '證照', '自我成長'] },
+    { key: 'emotion', label: '情緒 · 內在', focus: ['love'],
+      kw: ['情緒', '心情', '壓力', '焦慮', '憂鬱', '內耗', '心理', '自我'] }
+  ];
+  function detectTopic(q) {
+    q = (q || '').trim();
+    if (!q) return { key: 'default', label: '', focus: ['career'], hasQuestion: false };
+    for (var i = 0; i < TOPICS.length; i++) {
+      for (var j = 0; j < TOPICS[i].kw.length; j++) {
+        if (q.indexOf(TOPICS[i].kw[j]) >= 0) {
+          return { key: TOPICS[i].key, label: TOPICS[i].label, focus: TOPICS[i].focus, hasQuestion: true };
+        }
+      }
+    }
+    return { key: 'general', label: '綜合重點', focus: ['career'], hasQuestion: true, generic: true };
+  }
+
+  function render(result, opts) {
+    opts = opts || {};
+    var topic = detectTopic(opts.question);
+    var focusKeys = topic.focus;
     var out = $('#report');
     var innerLabels = ['第一張', '第二張', '第三張'];
     var outerLabels = ['第四張', '第五張', '第六張'];
@@ -307,17 +362,24 @@
       '</div>';
 
     var b = result.birthday;
+    var focusBanner = '';
+    if (topic.hasQuestion) {
+      var q = esc(opts.question);
+      focusBanner = topic.generic
+        ? '<div class="focus-banner"><b>🔎 ' + q + '</b><span>未對應到特定主題，顯示綜合重點（可用「感情／工作／財富…」等字詞聚焦）。</span></div>'
+        : '<div class="focus-banner"><b>🔎 ' + q + '</b><span>本次聚焦：' + topic.label + '——報表已把相關內容放到最前面並高亮。</span></div>';
+    }
     var header =
       '<div class="report-header">' +
         '<h2>' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + ' 的天賦設計</h2>' +
-        '<p>查詢年份：' + result.targetYear + '　·　六張天賦牌：' + result.talentCards.join('、') + '</p>' +
-      '</div>';
+        '<p>查詢年份：' + result.targetYear + '　·　天賦牌：' + result.talentCards.join('、') + '</p>' +
+      '</div>' + focusBanner;
 
     // 內在＋外在六張的詳細解說
     var detailCards = '';
-    result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i]); });
-    result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i]); });
-    if (result.boundaryCard != null) detailCards += talentCardDetail(result.boundaryCard, '天地交界牌');
+    result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i], focusKeys); });
+    result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i], focusKeys); });
+    if (result.boundaryCard != null) detailCards += talentCardDetail(result.boundaryCard, '天地交界牌', focusKeys);
 
     var html =
       header +
@@ -329,12 +391,21 @@
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
       sectionCard('年度策略', '今年的心智策略', yearSection(result)) +
-      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection());
+      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref');
 
     out.innerHTML = html;
     out.classList.add('has-report');
+    out.classList.toggle('concise', opts.level !== 'full');
     var pb = document.getElementById('btn-print');
     if (pb) pb.addEventListener('click', function () { window.print(); });
+    // 每張牌的「展開更多／收合」
+    Array.prototype.forEach.call(out.querySelectorAll('.tcard-expand'), function (btn) {
+      btn.addEventListener('click', function () {
+        var card = btn.closest('.tcard');
+        var open = card.classList.toggle('open');
+        btn.innerHTML = open ? '收合 ▴' : '展開更多 ▾';
+      });
+    });
     out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -368,6 +439,11 @@
     if (cur > max) dSel.value = String(max);
   }
 
+  function currentLevel() {
+    var r = document.querySelector('input[name="level"]:checked');
+    return r ? r.value : 'concise';
+  }
+
   function onGenerate() {
     var y = Number($('#in-year').value);
     var m = Number($('#in-month').value);
@@ -375,8 +451,9 @@
     var t = Number($('#in-target').value);
     if (!y || !m || !d) return;
     if (d > daysInMonth(y, m)) { d = daysInMonth(y, m); $('#in-day').value = String(d); }
+    var question = $('#in-question') ? $('#in-question').value : '';
     var result = C.analyze(y, m, d, t);
-    render(result);
+    render(result, { question: question, level: currentLevel() });
     try {
       localStorage.setItem('mmt:last', JSON.stringify({ y: y, m: m, d: d, t: t }));
     } catch (e) {}
@@ -401,5 +478,14 @@
     $('#in-year').addEventListener('change', clampDay);
     $('#in-month').addEventListener('change', clampDay);
     $('#btn-generate').addEventListener('click', onGenerate);
+    // 顯示詳細度切換：若已有報表，即時重繪
+    Array.prototype.forEach.call(document.querySelectorAll('input[name="level"]'), function (r) {
+      r.addEventListener('change', function () {
+        if ($('#report').classList.contains('has-report')) onGenerate();
+      });
+    });
+    // 問題欄按 Enter 直接生成
+    var q = $('#in-question');
+    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
   });
 })();
