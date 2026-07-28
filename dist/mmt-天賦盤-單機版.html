@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MMT 天賦原理 · 自動生成天賦盤</title>
+  <meta name="description" content="輸入生日，自動生成 MMT 天賦原理個人分析：六張天賦牌、導師／陰影、四大能量與年度策略。">
+  <style>
+/* ================= MMT 天賦原理 — 樣式 ================= */
+:root{
+  --bg:#0e1020; --bg2:#161a34; --panel:rgba(255,255,255,.045);
+  --panel-solid:#1b2040; --line:rgba(255,255,255,.10);
+  --text:#eef0fb; --muted:#a6acce; --gold:#e6c473; --accent:#8a7bff;
+  --wind:#6aa9d9; --fire:#e0715a; --water:#4fb0a5; --earth:#d3a34e;
+  --radius:16px; --shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; color:var(--text);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+  background:radial-gradient(1200px 700px at 15% -10%,#26224f 0%,transparent 55%),
+             radial-gradient(1000px 700px at 100% 0%,#153043 0%,transparent 50%),
+             linear-gradient(160deg,var(--bg),var(--bg2));
+  min-height:100vh; line-height:1.7; -webkit-font-smoothing:antialiased;
+}
+.bg-orbs{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.bg-orbs span{position:absolute;border-radius:50%;filter:blur(70px);opacity:.28}
+.bg-orbs span:nth-child(1){width:320px;height:320px;background:#7b6cff;left:-60px;top:120px}
+.bg-orbs span:nth-child(2){width:280px;height:280px;background:#3fa0b0;right:-40px;top:40px}
+.bg-orbs span:nth-child(3){width:360px;height:360px;background:#c98a5a;left:40%;bottom:-140px}
+
+.site-header{position:relative;z-index:2;padding:26px 20px 6px;max-width:1080px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-mark{font-size:30px;color:var(--gold);text-shadow:0 0 18px rgba(230,196,115,.6)}
+.brand h1{margin:0;font-size:22px;letter-spacing:2px}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px;letter-spacing:1px}
+
+.container{position:relative;z-index:2;max-width:1080px;margin:0 auto;padding:14px 18px 60px}
+
+/* ---- 輸入區 ---- */
+.input-panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:28px 26px;backdrop-filter:blur(8px);box-shadow:var(--shadow);margin-top:14px;
+}
+.input-panel h2{margin:0 0 6px;font-size:20px;letter-spacing:1px}
+.input-sub{margin:0 0 20px;color:var(--muted);font-size:14px}
+.form-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr 1.4fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field span{font-size:12.5px;color:var(--muted);letter-spacing:.5px}
+.field select{
+  appearance:none;background:var(--panel-solid) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%23a6acce' stroke-width='1.6'/></svg>") no-repeat right 12px center;
+  color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 30px 11px 12px;
+  font-size:15px;font-family:inherit;cursor:pointer;transition:border-color .2s;
+}
+.field select:focus{outline:none;border-color:var(--accent)}
+.field option:disabled{color:#555}
+.btn-generate{
+  margin-top:22px;width:100%;padding:15px;border:none;border-radius:12px;cursor:pointer;
+  font-size:16px;font-weight:700;letter-spacing:2px;color:#1a1630;
+  background:linear-gradient(100deg,var(--gold),#f0d693);
+  box-shadow:0 10px 30px rgba(230,196,115,.32);transition:transform .12s,box-shadow .2s;
+}
+.btn-generate:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(230,196,115,.42)}
+.btn-generate:active{transform:translateY(0)}
+
+/* ---- 報告 ---- */
+.report{margin-top:26px}
+.report-header{text-align:center;padding:14px 0 6px}
+.report-header h2{margin:0;font-size:24px;letter-spacing:1px}
+.report-header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+.report-section{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 22px 24px;margin-top:18px;box-shadow:var(--shadow);
+}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;
+  border-bottom:1px solid var(--line);padding-bottom:12px}
+.section-head h3{margin:0;font-size:18px;letter-spacing:1px}
+.section-head h3::before{content:"✦ ";color:var(--gold)}
+.section-head span{color:var(--muted);font-size:13px}
+
+/* 徽章 */
+.overview-cards{display:flex;flex-direction:column;gap:16px}
+.ov-group h5{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.ov-row{display:flex;flex-wrap:wrap;gap:10px}
+.badge{
+  position:relative;min-width:88px;padding:10px 12px 9px;border-radius:12px;text-align:center;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 26%,transparent),color-mix(in srgb,var(--c) 8%,transparent));
+  border:1px solid color-mix(in srgb,var(--c) 55%,transparent);
+}
+.badge-label{display:block;font-size:11px;color:var(--muted);margin-bottom:2px}
+.badge-num{display:block;font-size:26px;font-weight:800;line-height:1.1;color:#fff}
+.badge-name{display:block;font-size:13px;margin-top:1px}
+.badge-elem{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+
+/* 能量 */
+.energy-wrap{display:flex;flex-direction:column;gap:14px}
+.energy-row{padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:color-mix(in srgb,var(--c) 6%,transparent)}
+.energy-row.high{border-color:color-mix(in srgb,var(--c) 60%,transparent)}
+.energy-row.zero{opacity:.92;border-style:dashed}
+.energy-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.energy-name{font-weight:700}
+.energy-pct{font-size:13px;color:var(--muted)}
+.energy-pct b{color:var(--c)}
+.energy-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);margin:8px 0 4px;overflow:hidden}
+.energy-bar span{display:block;height:100%;border-radius:6px;background:var(--c)}
+.energy-detail{font-size:13px;color:var(--muted);margin-top:6px}
+.energy-detail .et-traits{margin:2px 0;color:var(--text)}
+.energy-detail .et-task{margin:2px 0}
+
+/* 天賦牌詳細 */
+.tcards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tcard{border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 10%,transparent),transparent);
+  border-left:4px solid var(--c)}
+.tcard-head{display:flex;align-items:center;gap:12px}
+.tcard-num{font-size:34px;font-weight:800;color:var(--c);line-height:1;min-width:44px;text-align:center}
+.tcard-title{flex:1}
+.tcard-title strong{font-size:17px}
+.tcard-kw{color:var(--muted);font-size:13px;margin-left:4px}
+.tcard-tag{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.tcard-role{display:inline-block;margin:8px 0 2px;font-size:11.5px;color:var(--gold);
+  border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:20px;padding:2px 10px}
+.tcard-meta{font-size:12.5px;color:var(--muted);margin:6px 0 8px}
+.tcard-sec{margin-top:10px}
+.tcard-sec h5{margin:0 0 5px;font-size:12px;color:var(--muted);letter-spacing:.5px;
+  padding-left:8px;border-left:3px solid color-mix(in srgb,var(--c) 60%,transparent)}
+.tcard-sec.shadow h5{color:var(--fire);border-left-color:var(--fire)}
+.tcard-sec.adv h5{color:#7fd6a0;border-left-color:#7fd6a0}
+.tcard-sec>p{margin:0;font-size:13px;padding-left:11px}
+
+/* 條列（合理化排版核心） */
+.pts{list-style:none;margin:0;padding:0}
+.pts li{position:relative;font-size:12.5px;line-height:1.55;padding:2px 0 2px 20px}
+.pts li::before{content:"";position:absolute;left:6px;top:9px;width:5px;height:5px;border-radius:50%;
+  background:color-mix(in srgb,var(--c) 75%,transparent)}
+.tcard-sec.shadow .pts li::before{background:var(--fire)}
+.tcard-sec.adv .pts li::before{background:#7fd6a0}
+.tcard-sec.shadow .pts li{color:#f0c4bb}
+
+/* 占星 / 神話 並排 */
+.tcard-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.tcard-cols{grid-template-columns:1fr}}
+.tcard-cols .pts li:first-child{font-weight:700;color:var(--text)}
+.tcard-cols .pts li:first-child::before{background:var(--gold)}
+
+.tcard-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px;
+  border-top:1px solid var(--line);padding-top:12px}
+.tcard-grid .pc h6{margin:0 0 4px;font-size:11.5px;color:var(--gold);letter-spacing:.5px}
+.tcard-grid .pts{margin:0}
+.tcard-grid .pts li{font-size:12px;padding-left:16px}
+.tcard-grid .pts li::before{left:4px;width:4px;height:4px}
+.tcard-grid .pc-main .pts li,.tcard-grid .pc-main{color:var(--text)}
+.tcard-grid .pc-desc,.tcard-grid .pc-desc li{color:var(--muted)}
+.tcard-grid p{margin:0;font-size:12px}
+.tcard-grid .pc-main{font-size:12.5px;color:var(--text)}
+.tcard-grid .pc-desc{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* 導師陰影家族 */
+.ms-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ms-box{border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:rgba(255,255,255,.03)}
+.ms-box.shadow{border-color:color-mix(in srgb,var(--fire) 34%,transparent);
+  background:color-mix(in srgb,var(--fire) 7%,transparent)}
+.ms-box h4{margin:0 0 8px;font-size:16px;color:var(--gold)}
+.ms-box.shadow h4{color:var(--fire)}
+.ms-box p{margin:4px 0;font-size:13.5px}
+.ms-arche{font-size:14.5px}
+.ms-pursue,.ms-complex{color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin-top:8px !important;font-style:italic}
+.fam-badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.fam-badges .badge{min-width:66px;padding:7px 8px}
+.fam-badges .badge-num{font-size:20px}
+
+/* 年度策略 */
+.year-box{border:1px solid color-mix(in srgb,var(--gold) 30%,transparent);border-radius:12px;
+  background:color-mix(in srgb,var(--gold) 8%,transparent);padding:16px 18px}
+.year-head{font-size:16px;font-weight:700}
+.year-head b{color:var(--gold);font-size:22px}
+.year-body p{margin:6px 0;font-size:14px}
+
+/* 步驟 */
+.steps{counter-reset:none;margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.steps li{font-size:13.5px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
+.step-tag{display:inline-block;font-size:11px;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);
+  border-radius:6px;padding:1px 7px;margin-right:8px;letter-spacing:.5px}
+
+/* 附說明欄位 */
+.pc-main{margin:0;font-size:12.5px;color:var(--text)}
+.pc-desc{margin:2px 0 0;font-size:12px;color:var(--muted)}
+
+/* 報表操作列 / 列印按鈕 */
+.report-actions{display:flex;justify-content:flex-end;margin:6px 0 -6px}
+.btn-print{cursor:pointer;font-size:13px;color:var(--text);background:rgba(255,255,255,.06);
+  border:1px solid var(--line);border-radius:10px;padding:8px 14px;transition:background .2s}
+.btn-print:hover{background:rgba(255,255,255,.12)}
+
+/* 完全牌 */
+.cm-intro{margin:0 0 10px;font-size:13.5px}
+.cm-line{margin:8px 0;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
+.cm-line b{display:block;color:var(--gold);margin-bottom:2px}
+.cm-line span{font-size:12.5px;color:var(--muted)}
+.cm-notes{margin:12px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted)}
+.cm-notes li{margin:3px 0}
+
+/* 家族關係 */
+.fam-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fam-card{border:1px solid var(--line);border-radius:12px;padding:14px 15px;background:rgba(255,255,255,.03)}
+.fam-card.complete{border-color:color-mix(in srgb,var(--gold) 50%,transparent);
+  background:color-mix(in srgb,var(--gold) 8%,transparent)}
+.fam-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fam-head h4{margin:0;font-size:15.5px}
+.fam-type{font-size:11.5px;color:var(--muted)}
+.fam-card.complete .fam-type{color:var(--gold)}
+.fam-role{font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+.fam-mission{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.fam-mission li{font-size:12.5px;padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.04)}
+.fam-mission li b{display:inline-block;min-width:20px;color:var(--gold)}
+.fam-mission li.off{opacity:.5}
+.fam-mission li.off b{color:var(--muted)}
+.fam-flow{font-size:12.5px;margin:8px 0 4px}
+.fam-missing{font-size:12px;color:var(--fire);margin:6px 0 2px}
+
+.site-footer{margin-top:34px;text-align:center;color:var(--muted);font-size:12px}
+.site-footer .ip{opacity:.7;margin-top:4px}
+
+/* RWD */
+@media (max-width:820px){
+  .form-grid{grid-template-columns:1fr 1fr}
+  .tcards{grid-template-columns:1fr}
+  .ms-grid{grid-template-columns:1fr}
+  .tcard-grid{grid-template-columns:1fr}
+}
+@media (max-width:820px){
+  .fam-wrap{grid-template-columns:1fr}
+}
+@media (max-width:480px){
+  .form-grid{grid-template-columns:1fr 1fr}
+  .brand h1{font-size:19px}
+  .report-header h2{font-size:20px}
+}
+
+/* 列印 / 存成 PDF */
+@media print{
+  :root{--text:#1a1a2a;--muted:#555}
+  body{background:#fff;color:#1a1a2a}
+  .bg-orbs,.site-header,.input-panel,.report-actions,.site-footer{display:none !important}
+  .container{max-width:100%;padding:0}
+  .report-section{break-inside:avoid;box-shadow:none;border:1px solid #ddd;background:#fff}
+  .tcard,.fam-card,.ms-box,.energy-row,.cm-line{break-inside:avoid}
+  .tcards{grid-template-columns:1fr 1fr}
+  .report-header h2,.section-head h3{color:#1a1a2a}
+  .tags li{background:#f2f2f5;border-color:#ddd}
+}
+
+</style>
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="brand-mark">✦</span>
+      <div>
+        <h1>MMT 天賦原理</h1>
+        <p>Mercury Mental Thinking · 自動生成天賦盤</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="input-panel">
+      <h2>輸入你的西元生日</h2>
+      <p class="input-sub">系統會依 MMT 天賦原理，自動計算你的六張天賦牌、導師與陰影、四大能量與年度策略。</p>
+      <div class="form-grid">
+        <label class="field">
+          <span>出生年</span>
+          <select id="in-year"></select>
+        </label>
+        <label class="field">
+          <span>月</span>
+          <select id="in-month"></select>
+        </label>
+        <label class="field">
+          <span>日</span>
+          <select id="in-day"></select>
+        </label>
+        <label class="field">
+          <span>查詢年份（年度策略）</span>
+          <select id="in-target"></select>
+        </label>
+      </div>
+      <button id="btn-generate" class="btn-generate">✦ 生成我的天賦盤</button>
+    </section>
+
+    <div id="report" class="report"></div>
+
+    <footer class="site-footer">
+      <p>本工具依個人上課整理（MMT1階-直版天賦原理）製作，僅供自我覺察與個人使用。</p>
+      <p class="ip">天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。</p>
+    </footer>
+  </main>
+  <script>
+/* ===== js/calc.js ===== */
+/*
+ * MMT 天賦原理 — 計算引擎 (calc.js)
+ * -------------------------------------------------------------
+ * 資料來源：Google Drive「MMT課程 / MMT1階-直版天賦原理.pdf」與「MMT上課整理」試算表。
+ * 全部計算方式皆依照上述課程原理，僅供個人使用。
+ *
+ * 天賦號碼範圍：0 ~ 21（共 22 個號碼）。慣例上「22 = 0」。
+ * -------------------------------------------------------------
+ */
+(function (global) {
+  'use strict';
+
+  /* =============================================================
+   * 1. 基礎工具
+   * ============================================================= */
+
+  // 把一串數字字元全部相加，例如 "19840920" -> 1+9+8+4+0+9+2+0 = 33
+  function sumDigits(str) {
+    return String(str)
+      .split('')
+      .reduce(function (acc, ch) {
+        var n = parseInt(ch, 10);
+        return acc + (isNaN(n) ? 0 : n);
+      }, 0);
+  }
+
+  // 反覆做「數字相加」直到剩下個位數 (1~9)。用於導師牌。
+  function digitRoot(n) {
+    n = Math.abs(n);
+    while (n > 9) {
+      n = sumDigits(n);
+    }
+    return n;
+  }
+
+  // 反覆做「數字相加」直到 <= max（用於年度策略，max = 21）。
+  function reduceUntil(n, max) {
+    n = Math.abs(n);
+    while (n > max) {
+      n = sumDigits(n);
+    }
+    return n;
+  }
+
+  // 「超過 22 的部分要減去 22，直到 <= 22 即可 (22 = 0)」。
+  // 回傳值介於 1~22，其中 22 代表天賦號碼 0。
+  function reduce22(n) {
+    n = Math.abs(n);
+    while (n > 22) {
+      n -= 22;
+    }
+    if (n === 0) n = 22; // 理論上不會發生，保底
+    return n;
+  }
+
+  // 把 reduce22 的結果（1~22）轉成天賦號碼（0~21），22 -> 0。
+  function toCardNumber(v) {
+    return v === 22 ? 0 : v;
+  }
+
+  /* =============================================================
+   * 2. 天賦牌 1 ~ 3（自身內在思維）
+   * ============================================================= */
+
+  // 第一張牌 = 生日「日」。1~21 原值；22 = 0；23~31 為各位數字相加。
+  var DAY_TABLE = {
+    1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
+    11: 11, 12: 12, 13: 13, 14: 14, 15: 15, 16: 16, 17: 17, 18: 18,
+    19: 19, 20: 20, 21: 21,
+    22: 0,       // 22 = 0
+    23: 5,       // 2+3
+    24: 6,       // 2+4
+    25: 7,       // 2+5
+    26: 8,       // 2+6
+    27: 9,       // 2+7
+    28: 1,       // 2+8 = 10 = 1
+    29: 2,       // 2+9 = 11 = 2
+    30: 3,       // 3+0
+    31: 4        // 3+1
+  };
+
+  function card1(day) {
+    return DAY_TABLE[day];
+  }
+
+  // 第二張牌 = 生日「所有數字」相加，超過 22 減 22。
+  function card2(year, month, day) {
+    var all = String(year) + pad2(month) + pad2(day);
+    return toCardNumber(reduce22(sumDigits(all)));
+  }
+
+  // 第三張牌 = 西元年各位數字相加 + 月 + 日（月日不拆），超過 22 減 22。
+  function card3(year, month, day) {
+    var sum = sumDigits(year) + Number(month) + Number(day);
+    return toCardNumber(reduce22(sum));
+  }
+
+  /* =============================================================
+   * 3. 天賦牌 4 ~ 6（與世界關聯的相處方式，必為連號）
+   * -------------------------------------------------------------
+   * 依 PDF「年輪」查表：以「月」決定起始號、每一天 +1（在 1~22 之間循環）。
+   * 經與 PDF 對照，整張查表可用下列公式完全重現：
+   *   grid(月, 日) = ((monthBase[月] - 1 + (日 - 1)) mod 22) + 1   // 值域 1~22，22 = 0
+   * monthBase 為每個月「1 日」的號碼。
+   *
+   * 第四張牌 = grid(月, 日)，第五、六張為其後連號。
+   *   例：2/29 -> 連號 (依課程筆記「15、16、17」)。
+   *
+   * ⚠️ 連號方向待確認：預設採 [grid, grid+1, grid+2]（第四張為起點）。
+   *    若你手上的排盤是以查表值為「中間張」，把 OUTER_MODE 改成 'center' 即可。
+   * ============================================================= */
+
+  var MONTH_BASE = {
+    1: 1, 2: 10, 3: 16, 4: 3, 5: 11, 6: 20,
+    7: 6, 8: 15, 9: 2, 10: 10, 11: 19, 12: 5
+  };
+
+  // 已依實際排盤校準：查表值為「中間張」，故外在三張 = [g-1, g, g+1]。
+  var OUTER_MODE = 'center'; // 'center' = [g-1, g, g+1]（預設）；'forward' = [g, g+1, g+2]
+
+  // 年輪查表：回傳 1~22（22 = 0 由 toCardNumber 處理）
+  function gridRaw(month, day) {
+    var base = MONTH_BASE[month];
+    var v = ((base - 1 + (day - 1)) % 22) + 1;
+    return v;
+  }
+
+  // 在 1~22 的環上前進 step 步
+  function wheelStep(v1to22, step) {
+    var v = ((v1to22 - 1 + step) % 22 + 22) % 22 + 1;
+    return v;
+  }
+
+  function outerCards(month, day) {
+    var g = gridRaw(month, day);
+    var raw;
+    if (OUTER_MODE === 'center') {
+      raw = [wheelStep(g, -1), g, wheelStep(g, 1)];
+    } else {
+      raw = [g, wheelStep(g, 1), wheelStep(g, 2)];
+    }
+    return raw.map(toCardNumber);
+  }
+
+  /* =============================================================
+   * 4. 導師牌 / 陰影牌 / 家族牌
+   * ============================================================= */
+
+  // 導師牌 = 生日所有數字相加，再反覆相加到個位數 (1~9)。
+  function master(year, month, day) {
+    var all = String(year) + pad2(month) + pad2(day);
+    return digitRoot(sumDigits(all));
+  }
+
+  // 家族牌：同「數字根」的家族群組（22 = 0 歸在家族 4）。
+  var FAMILIES = {
+    1: [1, 10, 19],
+    2: [2, 11, 20],
+    3: [3, 12, 21],
+    4: [4, 13, 0],   // 0(=22) 屬家族 4
+    5: [5, 14],
+    6: [6, 15],
+    7: [7, 16],
+    8: [8, 17],
+    9: [9, 18]
+  };
+
+  function family(masterNum) {
+    return (FAMILIES[masterNum] || []).slice();
+  }
+
+  // 導師 -> 陰影（原型對照）。陰影 = 該家族中未顯現、藏於潛意識的號碼。
+  var SHADOW_MAP = {
+    1: 19, 2: 11, 3: 12, 4: 13, 5: 14,
+    6: 15, 7: 16, 8: 17, 9: 18
+  };
+
+  function shadow(masterNum) {
+    return SHADOW_MAP[masterNum];
+  }
+
+  /* =============================================================
+   * 5. 年度策略
+   * -------------------------------------------------------------
+   * = 查詢年份 + 月 + 日，反覆數字相加直到 <= 21（22 = 0）。
+   *   例：2024 + 1 + 28 = 2053 -> 2+0+5+3 = 10。
+   * ============================================================= */
+  function yearStrategy(targetYear, month, day) {
+    var sum = Number(targetYear) + Number(month) + Number(day);
+    var v = reduceUntil(sum, 21);
+    return v; // 已在 0~21 範圍
+  }
+
+  /* =============================================================
+   * 6. 四大能量分佈
+   * -------------------------------------------------------------
+   * 依六張天賦牌所屬元素（風火水土）統計。
+   *   高能量：占比 >= 25%；0 能量：完全沒有出現。
+   * ============================================================= */
+  var ELEMENT_OF = {
+    0: '風', 1: '風', 6: '風', 11: '風', 17: '風', 20: '風',
+    4: '火', 8: '火', 14: '火', 16: '火', 19: '火',
+    2: '水', 3: '水', 7: '水', 12: '水', 13: '水', 18: '水',
+    5: '土', 9: '土', 10: '土', 15: '土', 21: '土'
+  };
+
+  function energy(cards) {
+    var counts = { 風: 0, 火: 0, 水: 0, 土: 0 };
+    cards.forEach(function (n) {
+      var e = ELEMENT_OF[n];
+      if (e) counts[e] += 1;
+    });
+    var total = cards.length || 1;
+    var result = {};
+    ['風', '火', '水', '土'].forEach(function (e) {
+      var pct = Math.round((counts[e] / total) * 1000) / 10;
+      result[e] = {
+        count: counts[e],
+        percent: pct,
+        level: counts[e] === 0 ? 'zero' : (pct >= 25 ? 'high' : 'normal')
+      };
+    });
+    return result;
+  }
+
+  /* =============================================================
+   * 7. 對外主函式
+   * ============================================================= */
+  function pad2(n) {
+    n = Number(n);
+    return (n < 10 ? '0' : '') + n;
+  }
+
+  // 判斷完全設計 / 天賦設計 / 導師設計：
+  //   若某天賦牌同時等於導師牌所屬家族的核心（導師號），視為「完全」該號。
+  //   這裡以「天賦牌與導師家族是否重疊」做為輔助判讀，詳細仍需人工解盤。
+  function analyze(year, month, day, targetYear) {
+    year = Number(year);
+    month = Number(month);
+    day = Number(day);
+    targetYear = Number(targetYear);
+
+    var c1 = card1(day);
+    var c2 = card2(year, month, day);
+    var c3 = card3(year, month, day);
+    var outer = outerCards(month, day);
+    var talentCards = [c1, c2, c3, outer[0], outer[1], outer[2]];
+
+    var m = master(year, month, day);
+
+    // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張），已依實際排盤校準。
+    var energyCards = talentCards.concat([m]);
+
+    // 完全牌：同一號碼在六張天賦牌中出現兩張以上（優勢加成、完全人格傾向）。
+    var countMap = {};
+    talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
+    var completeCards = Object.keys(countMap)
+      .map(Number)
+      .filter(function (n) { return countMap[n] >= 2; })
+      .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
+      .map(function (n) { return { num: n, count: countMap[n] }; });
+
+    // 家族關係：天賦牌 + 導師牌 觸及到的家族（陰影不算）。
+    var presenceSet = {};
+    talentCards.concat([m]).forEach(function (n) { presenceSet[n] = true; });
+    var familyGroups = [];
+    Object.keys(FAMILIES).forEach(function (fid) {
+      var members = FAMILIES[fid];
+      var present = members.filter(function (n) { return presenceSet[n]; });
+      if (present.length === 0) return;
+      familyGroups.push({
+        id: Number(fid),
+        members: members.slice(),
+        present: present,
+        missing: members.filter(function (n) { return !presenceSet[n]; }),
+        complete: present.length === members.length
+      });
+    });
+    familyGroups.sort(function (a, b) { return b.present.length - a.present.length || a.id - b.id; });
+
+    return {
+      birthday: { year: year, month: month, day: day },
+      targetYear: targetYear,
+      talentCards: talentCards,          // 六張天賦牌 [第1..第6]
+      inner: [c1, c2, c3],               // 內在三張
+      outer: outer,                      // 外在三張（連號）
+      master: m,                         // 導師牌 (1~9)
+      shadow: shadow(m),                 // 陰影牌
+      family: family(m),                 // 家族牌群組
+      yearStrategy: yearStrategy(targetYear, month, day),
+      energyCards: energyCards,          // 計算能量所用的牌組（含導師）
+      energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
+      completeCards: completeCards,      // 完全牌（重複出現的天賦號）
+      familyGroups: familyGroups,        // 家族關係
+      elementOf: ELEMENT_OF
+    };
+  }
+
+  /* =============================================================
+   * 匯出
+   * ============================================================= */
+  var MMTCalc = {
+    analyze: analyze,
+    card1: card1,
+    card2: card2,
+    card3: card3,
+    outerCards: outerCards,
+    gridRaw: gridRaw,
+    master: master,
+    shadow: shadow,
+    family: family,
+    yearStrategy: yearStrategy,
+    energy: energy,
+    ELEMENT_OF: ELEMENT_OF,
+    setOuterMode: function (mode) { OUTER_MODE = mode; }
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = MMTCalc;
+  } else {
+    global.MMTCalc = MMTCalc;
+  }
+})(typeof window !== 'undefined' ? window : this);
+
+/* ===== js/data.js ===== */
+/*
+ * MMT 天賦原理 — 參照資料 (data.js)
+ * -------------------------------------------------------------
+ * 四大能量、三種設計、導師/陰影原型、情節、家族關係、完全牌、解盤步驟。
+ * 每張牌的詳細說明另存於 js/talents.js（由「MMT上課整理」Google 試算表轉出）。
+ * 天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。
+ * -------------------------------------------------------------
+ */
+(function (global) {
+  'use strict';
+
+  /* 四大能量（風火水土）高能量／0 能量說明 */
+  var ELEMENTS = {
+    風: {
+      name: '風', pursue: '學習', person: '顧問型人才',
+      high: {
+        traits: ['知識變現', '多元學習', '精準效率', '擅長變通', '表達能力', '邏輯清晰'],
+        task: '持續力的課題：因體力較差而一味追求精準；能量高於 50% 要留意持續力。'
+      },
+      zero: {
+        traits: ['覺得自己不夠好', '學習有匱乏感', '自我價值需靠他人給予', '和高風互相投射'],
+        task: '承包商課題：只要沒學過就想學、容易自我價值不足。解法：由他人給予自信、自愛、自尊。'
+      }
+    },
+    火: {
+      name: '火', pursue: '階級', person: '競爭型人才',
+      high: {
+        traits: ['開創', '直覺決斷', '充滿幹勁', '追求功成名就', '喜歡被授權', '風格鮮明'],
+        task: '商業模式課題：需要找到合適的運作方式才能持續發展，平衡創新與穩定。'
+      },
+      zero: {
+        traits: ['服從階級', '不敢違背階級制度', '企圖心需靠他人引領', '非常喜歡權威'],
+        task: '過度早熟、不讓自己有情緒；心中一定會有一個權威者。'
+      }
+    },
+    水: {
+      name: '水', pursue: '愛與情緒', person: '情感型人才',
+      high: {
+        traits: ['以人為本', '善解人意', '情緒價值', '重複習性', '活動策劃者'],
+        task: '情緒課題：社交能量高、情緒表達直觀，需要學習安放自己的情緒。'
+      },
+      zero: {
+        traits: ['不擅長處理衝突與情緒', '超級理智', '被愛與理解需靠他人反饋'],
+        task: '冒牌者症候群：對情緒低知覺，喜歡無情緒波動的工作。'
+      }
+    },
+    土: {
+      name: '土', pursue: '財富', person: '滲透／落實型人才',
+      high: {
+        traits: ['結構化', '價值觀', '金錢物質', '深思熟慮', '解決方案'],
+        task: '彈性開放的課題：結構化強、不喜變動，容易變成高薪奴隸。'
+      },
+      zero: {
+        traits: ['對金錢有匱乏感', '喜歡自由', '跳躍式與開放性思考'],
+        task: '財富課題：會把錢花在別人身上、狀態比錢低；多看財商與心靈的書。'
+      }
+    }
+  };
+
+  /* 三種設計層級 */
+  var DESIGN_LEVELS = {
+    complete: { name: '完全設計', desc: '該號能量可發揮 100% 以上，遇到重大事件才會跌落導師層級。' },
+    talent:   { name: '天賦設計', desc: '該號能量可發揮 50~100%，可精準校正到最佳優勢。' },
+    master:   { name: '導師設計', desc: '該號能量可發揮 50% 以下，需透過高效練習來補足。' }
+  };
+
+  /* 完全牌（完全人格）判讀說明 */
+  var COMPLETE_META = {
+    intro: '完全牌＝同一號碼在天賦牌中出現兩張以上（或天賦與導師重疊），能量可完全發揮、明確變現。',
+    notes: [
+      '完全設計遇到重大事件會跌落導師狀態，但通常都在完全天賦狀態。',
+      '完全牌沒有用到的時候會很失落。',
+      '解盤時優先處理「天賦與導師重疊」的完全號。'
+    ]
+  };
+
+  /* 導師 → 陰影原型 對照（含追求／傾向） */
+  var MASTER_ARCHETYPE = {
+    1: { shadow: 19, archetype: '英雄', tend: '多數傾向個人主義', pursue: '認同' },
+    4: { shadow: 13, archetype: '玩家／父親', tend: '多數傾向要有意義才有動力、證明自己是對的', pursue: '權力' },
+    7: { shadow: 16, archetype: '運動家', tend: '多數傾向冷暴力（自暴、冷處理）', pursue: '規則' },
+    2: { shadow: 11, archetype: '法官', tend: '多數傾向高敏感與挑剔', pursue: '挑剔' },
+    5: { shadow: 14, archetype: '倡導者', tend: '多數傾向害怕犯錯', pursue: '不會犯錯' },
+    8: { shadow: 17, archetype: '導師', tend: '多數傾向隱藏真實的自己', pursue: '隱藏' },
+    3: { shadow: 12, archetype: '母親', tend: '多數傾向無所求的奉獻', pursue: '給予' },
+    6: { shadow: 15, archetype: '妓女', tend: '多數傾向忍耐真實的慾望', pursue: '慾望' },
+    9: { shadow: 18, archetype: '受害者', tend: '多數傾向計較與權益', pursue: '權益' }
+  };
+
+  /* 導師情節（部分號碼） */
+  var COMPLEXES = {
+    1: '作品集情節：「我好像沒有代表作。」',
+    2: '閨蜜情節（渴望被愛）：背叛的痛最難放下。',
+    3: '焦點情節：不自禁會跟同層次的人比較。',
+    4: '柯南（收集）情節：沒有把握就不敢出聲。',
+    5: '溝通情節：事情發生時會先收集資訊再溝通。',
+    6: '關係情節：如何維持彼此之間的關係。',
+    7: '規矩情節：不知道怎麼表達自己的標準。',
+    8: '英雄情節：為什麼我的功勞與成就沒被看見。',
+    9: '指導情節：不喜歡被迫融入群體。',
+    10: '實力情節：我所得到的一切，都是我努力來的。',
+    11: '價值情節：這個圈子若不是我的 type，才不想進去。',
+    12: '付出情節：我對你付出這麼多，你怎麼可以…'
+  };
+
+  /* -------------------------------------------------------------
+   * 家族關係（家族牌）
+   * 家族＝相同數字根的號碼群組。1~4 為「三位一體」、5~8 為「正反兩面融合」、9 為「太極」。
+   * ------------------------------------------------------------- */
+  var FAMILIES = {
+    1: {
+      id: 1, members: [1, 10, 19], title: '創造力的顯化', role: '交易者（超業）',
+      type: '三位一體', category: '商業交易－創造力＋顯化',
+      mission: { 1: '作品集', 10: '高等圈層', 19: '長輩資源' },
+      flow: '容易成交、容易顯化目標；讓別人想要成為他、想模仿他。1、6 家族適合業配。'
+    },
+    2: {
+      id: 2, members: [2, 11, 20], title: '內在權威的影響力', role: '內核者',
+      type: '三位一體', category: '內在權威－追求內在和平、穩定、情緒（完2＋完11＝權威）',
+      mission: { 2: '一人之下萬人之上', 11: '自我價值', 20: '安全感' },
+      flow: '講話就能拿錢，適合團購、口碑相傳、人拉人；再加 5/14 影響力更強。'
+    },
+    3: {
+      id: 3, members: [3, 12, 21], title: '藝術的美感吸引', role: '美麗者',
+      type: '三位一體', category: '物質顏值－美、顏、藝',
+      mission: { 3: '獨善其身、C 位', 12: '關係、被黏', 21: '照顧別人、被照顧' },
+      flow: '會把事情做得很有藝術感、美感；3/12 追求美學與趨勢，21 讓美學落地。'
+    },
+    4: {
+      id: 4, members: [4, 13, 0], title: '打頭陣的王者風範', role: '掌管王國',
+      type: '三位一體', category: '企業－領頭者、老闆（自己做產品）',
+      mission: { 4: '領導（缺 4 在團隊裡耍老大）', 13: '專精（缺 13 渴望一技之長）', 0: '追求自由（缺 0 會雙標、不想被管）' },
+      flow: '創業力、領袖力；建議自己創業，挖角要直聘主管。'
+    },
+    5: {
+      id: 5, members: [5, 14], title: '價值傳遞的領導者', role: '傳遞者',
+      type: '正反兩面融合', category: '傳遞某種價值的領袖、溝通能力相關產業',
+      mission: { 5: '金錢與價值', 14: '使命與啟蒙' },
+      flow: '彼此獨立且完整；可以問「你要傳遞什麼價值」。'
+    },
+    6: {
+      id: 6, members: [6, 15], title: '人際關係的大明星', role: '大明星',
+      type: '正反兩面融合', category: '人際關係、接地氣、大眾市場',
+      mission: { 6: '人緣與影響力', 15: '策略與轉換' },
+      flow: '彼此獨立且完整；1、6 家族適合業配。'
+    },
+    7: {
+      id: 7, members: [7, 16], title: '挑戰中守護的執行者', role: '業務天才',
+      type: '正反兩面融合', category: '挑戰＋守護＋執行＝業務天才（聽話、東廠）',
+      mission: { 7: '守護與規矩', 16: '執行與生產' },
+      flow: '彼此獨立且完整；聽話、能落地執行。'
+    },
+    8: {
+      id: 8, members: [8, 17], title: '平民英雄、至聖先師', role: '英雄',
+      type: '正反兩面融合', category: '英雄',
+      mission: { 8: '成就與教練', 17: '媒合與利他' },
+      flow: '彼此獨立且完整。8、16 失敗是家常便飯，會在輸的時候再努力。'
+    },
+    9: {
+      id: 9, members: [9, 18], title: '特定領域的專家', role: '專家',
+      type: '太極', category: '專家、著重技術與方案、可以問「怎麼做」（成為專家前害怕失敗）',
+      mission: { 9: '交換好處、拿結果', 18: '感知與連帶' },
+      flow: '彼此可互相學習：9 學 18、18 學 9。'
+    }
+  };
+
+  var FAMILY_TYPE_DESC = {
+    '三位一體': '三位一體：彌補彼此缺陷。三張只要缺一，會召喚缺的那一張；未合體時只有 1/3，會有缺憾課題；全開在天賦則有整合課題。',
+    '正反兩面融合': '正反兩面融合：兩號彼此獨立且完整，一體兩面互相支援。',
+    '太極': '太極：兩號彼此可互相學習、陰陽調和。'
+  };
+
+  /* 解盤全盤順序（七步） */
+  var READING_STEPS = [
+    { step: 'STEP1', title: '四大能量', desc: '能量高與能量 0 的元素優先解（>25% 為高能量）。' },
+    { step: 'STEP2', title: '完全人格', desc: '優先解盤天賦與導師有重疊的完全號。' },
+    { step: 'STEP3', title: '完全家族', desc: '家族系列同時出現時一併解讀（天、導皆算，陰影不算）。' },
+    { step: 'STEP4', title: '兩張以上天賦牌', desc: '同號出現兩張以上，優勢加成。' },
+    { step: 'STEP5', title: '導師系列覺察', desc: '導師的覺察傾聽、陰影的提問挖掘。' },
+    { step: 'STEP6', title: '年度策略', desc: '提點當年心智策略，與整盤結合。' },
+    { step: 'STEP7', title: '收尾', desc: '使用行動方案收尾。' }
+  ];
+
+  global.MMTData = global.MMTData || {};
+  var D = global.MMTData;
+  D.ELEMENTS = ELEMENTS;
+  D.DESIGN_LEVELS = DESIGN_LEVELS;
+  D.COMPLETE_META = COMPLETE_META;
+  D.MASTER_ARCHETYPE = MASTER_ARCHETYPE;
+  D.COMPLEXES = COMPLEXES;
+  D.FAMILIES = FAMILIES;
+  D.FAMILY_TYPE_DESC = FAMILY_TYPE_DESC;
+  D.READING_STEPS = READING_STEPS;
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = D;
+  }
+})(typeof window !== 'undefined' ? window : this);
+
+/* ===== js/talents.js ===== */
+/*
+ * MMT 天賦原理 — 每張牌詳細說明 (talents.js)
+ * -------------------------------------------------------------
+ * 本檔內容由「MMT上課整理」Google 試算表自動轉出（每張牌的說明以該表為準）。
+ * 要更新內容：改 Google 試算表後重新同步即可。
+ * 天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。
+ * -------------------------------------------------------------
+ */
+(function (global) {
+  'use strict';
+  global.MMTData = global.MMTData || {};
+  global.MMTData.TALENTS = {
+  "0": {
+    "num": 0,
+    "name": "創意家",
+    "keyword": "自由的鳥",
+    "element": "風",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "天王星-唯一不變的事情就是改變 快速- 改變 人本 *快速上手但不容易學深，如果要逼他學深不是敷衍就是逃跑 觀點：快速、人本、改變 理論：有網路、科技、AI、資訊能量(無形的)",
+    "myth": "酒神(戴奧尼索斯)-出生兩次的男人 不怕死(不怕重來，不死都是擦傷)、從無到有的創造性格 適合看歌舞劇，要有音樂 喜歡美酒跟音樂-微醺感、迷濛感 回憶過往-成為人生典範 瘋狂不羈的自由感",
+    "likeness": "相同： 創意 靈活 聰明 多變(多元) 不同： 內在思考 0-自己的體驗 1-自己輸入輸出 6-人際牌(對外影響力較大) 學習的方式 0-從無到有 1-抄襲、操作、超越 6-沒有問題 愛情 0-不婚不生 1-一致性 6-心跳感 主動6>1>0",
+    "advantage": "快速 改變 獨立 顛覆 創造 創新 自由 瘋狂 不怕挫敗跟挑戰(反覆犯錯還會有新的創意) 對別人的錯誤不會放上心 0到1",
+    "unhealthy": "沉醉過往優秀-不願意認清現實，沒有辦法看到現在的狀況(過度相信自己的聰明才智) 缺乏考量-沒有想清楚就幹了(會反覆嘗試失敗，犯同樣的行為及錯誤。40歲之後容易變成人生典範) 對自我靈感只會說不會做-找有落地能力的人一起做或者偷他的靈感",
+    "career": "完全0-新創公司(獨角獸) 自己創業 設計 行銷 業務 廣告 公關 資訊人才 流行產業 工程師(與科技有關) 遊戲產業 賣看不見的產品比賣看的見的產品好 #創意類 #軟體資訊 #挑戰型 #空中能量",
+    "love": "尊重彼此個體(尊重他) 不婚、不生頂客族機率高 要陪他一起跳(闖、嘗試) 越阻擋他反而會讓他往反方向走 0很多的小孩不要嘗試去控制",
+    "note": "喜歡刺激大腦活化 喜歡沒有邏輯 0、1、6會停不下來 風火太高會體力太好 可以抄襲0的，掛名就好 1不能抄襲，會捍衛自己的作品集",
+    "summary": "AI時代。0將崛起 1的商業模式需要大量輸入'大量輸出，如果沒有作品集要去找第二座山，加強第二座山 6沒有愛情課題，就可以把6放在工作上。 0、1、6 高材生(眼高於頂)，可能是浪子 11、17、20 文青感(像是一本書，需要開口相處)",
+    "subconscious": "自由比金錢更重要 相信賺錢也不能失去自由",
+    "subconsciousDesc": "會因為自由導致自己沒有錢 如果心中覺得再多的錢也買不到自由，就會因為自由賺不到錢 要先自律來買自由 以終為始 自由情節要為我所用",
+    "wealthMind": "活在當下 省小錢花大錢 娛樂/酒水/飲料費",
+    "wealthMindDesc": "要跟他說當下，沒有以後 成交在當下 可以跟他賣貴的 成交幾乎都在娛樂場所(KTV、餐酒館)",
+    "monetize": "AI科技 資訊 行銷廣告",
+    "monetizeDesc": ""
+  },
+  "1": {
+    "num": 1,
+    "name": "整合者",
+    "keyword": "創作家",
+    "element": "風",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "水星-掌管輸入與輸出 思考、學習、收集應變 掌管\"腦\" 觀點：腦(掌管思考、思維、思緒) 理論：吸收",
+    "myth": "荷米斯-偷牛的弟弟(信使天神) 鬼才般的存在 沒有他扳不彎的嘴 郵差 資訊 商神棍-凡看到商神棍，此交易必成功 支持他爸爸，他爸爸交代的任務都會完成 宙斯的文將軍 鬼靈精怪、地才(討厭跟別人比較) 輸出",
+    "likeness": "相同： 創意 靈活 聰明 多變(多元) 不同： 內在思考 0-自己的體驗 1-自己輸入輸出 6-人際牌(對外影響力較大) 學習的方式 0-從無到有 1-抄襲、操作、超越 6-沒有問題 愛情 0-不婚不生 1-一致性 6-心跳感 主動6>1>0",
+    "advantage": "整合 表達 專長 傳遞資訊 文字輸出 有成交、交易的能量 大腦會出很多資訊 要注意輸入、輸出要平衡 抄襲、操練、超越(1到100) 會容易把東西合理化(把觀念說服到認同他)",
+    "unhealthy": "利用言語操弄目標(目的)-商業交易能量強大 失去辨識自我能力的信心(沒有作品的時候會非常低落)-類老二哲學 容易腦神經衰弱(過度思緒導致)",
+    "career": "完全1-商業交易 講師 老師 傳教士 設計商業模式 業務(以物易物) 「公司要有對價的交換」 #商業交易 #才華",
+    "love": "學習成長同步(一致)性 **全家的學習成長一致性-如果沒有，1會丟掉他 *家長跟小孩一起上 *適時的問他最喜歡的，是否需要再深耕的 *定期檢查學習的進度跟進步 *過度膨脹追到的好處，不會膨脹自己的背景",
+    "note": "文字輸出(FB、脆)-1的天下 IG-6的天下 0、1、6-不用學深 0、1都要做大 0-瘋瘋的學(亂學) 1-廣而收集(整合、抄襲操作超越)",
+    "summary": "",
+    "subconscious": "錢可以再賺，學費不能省 學習是最重要的投資",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "2": {
+    "num": 2,
+    "name": "敏銳者",
+    "keyword": "皇后",
+    "element": "水",
+    "face": "外顯",
+    "numTag": "感知水",
+    "astrology": "月亮 安全感設計重 需要一個完整的關係 情感 陰性特質",
+    "myth": "希拉 守護自己愛情跟婚姻，至高至極 重視承諾 公平與同理心 權威 愛情守護者與忠誠 敏銳直覺 喜歡雍容華貴 婚姻與家庭的守護神 守護很多正宮",
+    "likeness": "",
+    "advantage": "對於安全感、情感連結重 抓出軌高手 在所有關係中都非常敏銳 專心、專情 會有限度的容忍(容忍度相對大) 重視信任與承諾(魔咒般的要求) 多愛自己一點(可以買精品) 在工作會追求權威(事業婚姻都平權，把家庭事業都顧的很好) 用表現幫助另外一半 2不忠誠但會把家裡顧的很好 感知力強(外在高冷，內在敏感纖細) 直覺高 內心是權威人 內核穩定的提供者 秘密收集者(心甘情願地說) 提供安全感 喜歡忠誠的人 違背承諾，2會永遠都不會原諒 至高無上的權力 追求安全、穩定 敏銳、直覺、多疑 女性主義、大女主 可以放在事業",
+    "unhealthy": "所以會被創傷禁錮(一朝被蛇咬，十年怕草繩，PTSD) 在關係中討好(會幫夫，深愛的時候會拋棄一切) 忽略自我權益(不一定) 不容易忘記傷痕(至少要五年以上) 因為太害怕受傷，導致直接隔絕所有 會為了所愛的人犧牲奉獻",
+    "career": "完2-女性教主 非常適合女性的生意 會先讓你做，然後幫你做好 要在找工作不要讓2的主管發現(有一種we'r my family的感覺，有找工作就是犯罪) #重視情感 #安全感 #傾聽經濟 #重視承諾 #女性受眾 #事業心",
+    "love": "妥善控制自己的敏銳，避免變成玻璃心 很2的人會讓人覺得不知道什麼事情碰到點，然後就爆炸了 明明擁有直覺，卻不願意去溝通，反而讓自己痛苦 幫夫但討厭背叛 愛情來臨是心靈伴侶(要與她說話) 幫夫運、幫妻運極好 會希望自己可以擁有一個屬於自己的版圖 有事業心的幫夫(妻)者",
+    "note": "天2在關係中訂下來後，會忽略自我權益 完2、天2男生婚後狀態很好 在辦公室呼風喚雨，遇到感情反而會變成小女人 有強大的直覺，要試著相信直覺來反應 2跟2會是好朋友，雙方會很黏 商業諮詢-陪跑教練/商業顧問 2的男人容易吸引女強人",
+    "summary": "2-提升女性內核 3-提升女性外在(好摸透) 2+3-妥妥的美 2+3的男生=阿尼瑪(男身女心，陰性特質，溫柔、傾聽) 2+3的女生=精品業、珠寶業 2-顧老公 3-顧小孩 2、3、6、7、11的男生是女性設計(會讓女生誤以為喜歡他) 導5會有害怕犯錯的課題，表達能力 天5對導5，導5會有對話壓力 2遇到3，2會退讓(皇后遇到貴妃)-2會包容3 *兩性是很好賺錢的(可能會被包諮詢整年) 導3、6、9會與環境共振 導2、5、8為家人 導1、4、7只為我自己",
+    "subconscious": "只要心情對了，甚麼都對。 感知水-重視感受(請、謝謝、對不起、我愛你) 認知水-重視道理(道理、證據、論述、過程、合理性、鉅細靡遺解釋)",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "3": {
+    "num": 3,
+    "name": "美學家",
+    "keyword": "貴妃",
+    "element": "水",
+    "face": "外顯",
+    "numTag": "認知水",
+    "astrology": "金星 情感、享受、審美觀",
+    "myth": "阿芙蘿黛蒂(維納斯) 精氣女神 至高無上美學的存在 博人眼球的吸引力 運籌帷幄 號召力 高層級魅力",
+    "likeness": "",
+    "advantage": "情緒是直觀的 性愛排行榜第一名 視覺性性愛需求(身材要下功夫，刺激的視覺性性愛) 有3的男生是行走費洛蒙 有3的話放任自己的體態，3會活不出來(要趕快解決)-不能駝背、不能胖、不能臉花、身材不能不好 可能會整型整上癮 性愛的明確渴望(視覺饗宴) 對美會有近乎病態的要求 會因為自己的體態及外貌產生自信 批評樣貌會很犀利 對於美會有病態與瘋狂的狀態 對美有極大的挑剔 小極星 會讓別人為他所用 3體態不能不好、要讓他美 出場有紅地毯感(會自帶BGM)-壓制性的魅力",
+    "unhealthy": "落入比較跟利用(會用美來比較) 濫用個人魅力(會有很多工具人，讓人為他所用) 壓制感強",
+    "career": "完3-美業天才(美的技術) 醫美 健身 健康食品 珠寶、設計 繡眉 室內設計(自己住) 藝術方面 #讓自己美 #異性財 #醫美",
+    "love": "教養高手 有3的媽媽或女兒，教養家裡的規矩 對小孩有一套，小孩會喜歡他",
+    "note": "要教小孩從小當忌妒、比較、憤怒 3不能胖、體態不能差。不然會活不出來 愛自己的設計",
+    "summary": "3遇到4會互相吸引 3+4會遇到人際關係課題(酸民多) 導4+天3、天4+導3都會有機會 2走緣走緣故 3走陌生開發 2+6會過度在意人際關係(加重人際課題) 3、7會很兇(外傾，認知水) 12、18很兇(內傾，感知水)",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "4": {
+    "num": 4,
+    "name": "挑戰者",
+    "keyword": "鯰魚",
+    "element": "火",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "牡羊座 決斷、計畫、行動力 氣完就沒事了 果斷",
+    "myth": "阿瑞斯(孔武有力，但是無腦) 鯰魚效應(刺激團隊，會主動去鬥) 挑戰與衝撞 爭強好勝的企圖心 領導能力 功成名就 脾氣暴躁",
+    "likeness": "4的樣貌",
+    "advantage": "決斷 計畫 行動力 當4衝撞的時候可以先感謝他作為開場白 當被逼急了，他會黑化(挖牆腳、自立門戶) 滿身是血，因為過度衝撞導致自己很受傷(導致畏首畏尾，讓自己不敢衝撞。3、4都一樣) 不要太亮眼，不然會被打壓(會害怕自己太亮眼導致被打壓，進而讓自己沒有光。人際創傷嚴重) 老闆身邊最好的幫手 把4拿來做為異議份子 適度的允許4號的美好(有意識的布置鯰魚進行衝撞及刺激) 夠強，我尊重你；不夠強，我衝撞你 盡量私底下一對一跟他說(最好是在小房間說) 注重產能 #沒有擦亮招牌 #開卡車衝撞 #需要舞台",
+    "unhealthy": "嗜血性-過度衝撞習慣導致(要注意職場霸凌) 落入攻擊和侵略的高嗜血模式 愛面子",
+    "career": "完4-創業人才 不適合做公務人員 適合扁平性組織 要直接給全力 容易領導強人 適合做績效管理人員 不容易服從別人 火的忠誠來自於團隊有多強 沒有占有權 比較有職場企圖心(會直接爭取) 會追求在辦公室有一個領導的位置 4的主管要小心刁他 #喜歡強者 #成績=能力-干擾 發言前要幫他擬稿 深呼吸3秒鐘再說 找風高的人幫忙 #要運動",
+    "love": "負責任且不會有其他的想法(除了工作就是你) 工作與家庭兩點一線 對4的小孩就讓他去運動 沒有感情牌 4的男生會支持老婆 4的女生幫夫運好",
+    "note": "4的團隊強將比較多，8會去打壓別人(8的福弱情節高) 天3、天4會有職場霸凌的問題(人際糾紛) 天3+天4職場的人際問題會高達九成 4會為了你的優秀而鼓掌 8會做很多事情來刷存在感 4、16運動能力最好，性愛次數濃厚(運動經濟) 4的性慾相對強 4偏向創業 16偏向體/能態-體力、能態、狀態 團隊如果都沒有人衝撞 老化安逸 抱團取暖(任何人在團隊裡面都要尋求認同感) 不想要有刺激",
+    "summary": "如果想要拿第一名的慾望全部藏在內心，要自己去爭取而後獲得長大的能量 同時有 4、8要注意使用的情境 如果只有一張4，還有機會在大公司裡面當小魚。 面對火能量要說「讓團隊更有企圖心」 火能量會有溝通課題，容易與人吵架 面對4的客戶絕對不能示弱 與火能量相處要激發他的保護感(傾聽、提問、崇拜) 完4的家長如果沒有體力會被完死 完13說話的一針見血感驚人，可以考慮學英文辯論 3+4人際關係可能會不好(打下江山的過程中會忽略感受)，不鼓勵念純同性學校 4遇到1會收斂，不會衝撞 導6、導2不允許辦公室有異議份子 有意識的布局鯰魚",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "5": {
+    "num": 5,
+    "name": "傳教者",
+    "keyword": "財務管理",
+    "element": "土",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "金牛座 有金星的力量 溝通 說服力 實事求是 吃好、穿好",
+    "myth": "狄密特-豐收女神 金錢能量 自我價值 慣性焦慮 投資理財 傳達價值教主",
+    "likeness": "",
+    "advantage": "慣性焦慮(心缺了一塊) 會用暴吃解決焦慮 做很多但都會覺得不夠 投資、研究財報、研究基金 出門就是被錢撞到 最有機會成為超級富翁 會去了解公司，成為別人的股東 實事求是感很重 因為焦慮導致溺水感(窒息的焦慮感) 焦慮已經是生理反應 會用價值觀輾壓對方(為了創造影響力)",
+    "unhealthy": "把溝通當作辯論賽-太嚴重的時候會覺得溝通在吵架 優雅的5會變成碎碎念(例如有11) 憂國憂民，神經衰弱",
+    "career": "完5-金融投資者 如果名牌是聽來的容易摔車 股票投資、財經、財商 股權 成為他人的股東 投資者 操盤手 證券營業員 金融業 買賣土地(仲介) 創投 #股東、股權、股票 #用價值觀輾壓對方(傳遞價持觀) #金錢能量報棚 #生理性的慣性焦慮",
+    "love": "多思多慮不影響他人 會一直操煩家裡的事情，燃燒焦慮給別人",
+    "note": "土能量上財商課程(大量研究) 土能量不想做出犯錯的決定",
+    "summary": "5+7 房地產天才(房屋相關周邊) 5、13辯論賽 5-帶著價值觀、利基點在跟你說(發散) 13-只會打一個點 5、10、15、20金錢能量強如果再+3(小吉星)會很容易賺到錢，可以用湊的 天5+天9 慣性焦慮非常嚴重(會焦慮是否高勝率) 告訴5如何可以做到最好",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "6": {
+    "num": 6,
+    "name": "演繹家",
+    "keyword": "舞台工作者",
+    "element": "風",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "雙子座 人緣、學習力、社交優勢 喜歡孤獨(外熱內冷)",
+    "myth": "厄洛斯(邱比特)與賽姬(唯一雙神) 不相信愛情 忌妒、懷疑與尊重為愛情的殺手 有濃烈的情感課題 有嚴重的愛情課題 幸福愛情的追求模範(唯一的喜劇神話) 雙叉路的設計(人格) 追求椎心刺骨的愛情",
+    "likeness": "相同： 創意 靈活 聰明 多變(多元) 不同： 內在思考 0-自己的體驗 1-自己輸入輸出 6-人際牌(對外影響力較大) 學習的方式 0-從無到有 1-抄襲、操作、超越 6-沒有問題 愛情 0-不婚不生 1-一致性 6-心跳感 主動6>1>0",
+    "advantage": "人緣 學習力 社交優勢 自帶光環 門面擔當 追求心跳感 人生如戲，戲如人生 願意為了愛去付出、犧牲 享受愛與不愛的感覺 相信愛，也恨愛",
+    "unhealthy": "傲嬌、任性 為了體驗愛情創造戲劇化的情節",
+    "career": "完全6-舞台人物 YTR 演藝人員-蔡依林、大S 適合做團購或人緣型的工作 短影音、螢光幕產業 要多上台拿麥克風 一定要露臉(露臉就會有業績) 自己就有流量 人見人愛 #人緣變現 #螢光幕前產業 #美好經濟",
+    "love": "建議燕麥式的愛情 追求愛情的時候要健康且營養 會追求刺激的愛情 喜歡飛蛾撲火 會內耗別人 嘗鮮主義(要有心跳感) 投入愛情 要常常給小孩新的東西 要當6的玩伴、朋友(讓他覺得好玩) 婆媳問題 愛搞辦公室戀情 過度追求感情上的心跳 追求過度高標的愛情(怕寂寞、需要天天都有心跳感及磨合感、容易外遇) 6有王子性格，喜歡被女人照顧 敢付出的人內核穩定",
+    "note": "6的兩性課題會比較重 會被3、4控制(3是他媽媽、4是他爸爸) 八點檔、連續劇、追求刺激 容易談辦公室戀情 6+3一定要露胸-只有6露半球，6+3露到肚臍 0、1、6適合做電商 自我價值如果需要別人支持，都沒辦法當老大。 風屬性只有0可以當老大 6、7、20、21-會順從媽媽 6是靈魂、3是吃肉 3-追求家庭血緣 6-追求家庭愛情(會跟婆媳一起住)",
+    "summary": "",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "7": {
+    "num": 7,
+    "name": "守護者",
+    "keyword": "規矩",
+    "element": "水",
+    "face": "外顯",
+    "numTag": "認知水",
+    "astrology": "巨蟹座 外表堅硬、內心柔軟 慢熱 愛回家、愛做菜 溫和、慢熱",
+    "myth": "赫斯提亞-第一個被吃掉 灶神 幸福的定義與兒時記憶有關 家庭團隊的穩定與守護 不主動爭也不容犯 對家人有很大的包容力 掌管家庭的財庫",
+    "likeness": "",
+    "advantage": "外硬內軟-外觀剛硬內心溫柔 吃東西挑嘴、口慾強、吃的品味(要帶牠吃好的，一定要好吃) 追求家的安靜、整潔、規矩 有明確表達就一定要滿足他 要讓7學會保留好的，去除壞的基因(如果被PUA會灌輸在身體裡面，逼不得已會被切斷對家族的期待) 7會受到家族制約 追7要擒拿家人(媽媽先) 要讓7找出情緒不舒服的地方(要讓他面對現實) 性愛的明確渴望 喜歡吃家飯 愛家 會有文藝的品嚐 守護家人 不張揚 愛吃 會堆很多收集的東西(抓著或收集才會有安全感) 對家的規矩有近乎苛求的規則(枝微末節的家規) 會傳承家裏的規矩 兒時記憶會影響到幸福的定義 複製家裡行為模式的狀態 7會因為不尊重他的規矩而生氣",
+    "unhealthy": "控制慾與精神潔癖(家/族的制約) 對於規則沒有彈性(複製長輩或主管的規則) 愚忠、愚孝",
+    "career": "完7-房地產大亨 跟家的產業 家庭、收集精品、餐廳美食 有7的下屬要家庭拜訪(找到對人生影響最多的人是誰) 如果進到公司都是這樣被對待，他會複製主管的對待方式 居家整理師 美食評論家 外送、外包、宅配 居家清潔、到府服務都算 香氛 裝潢、設計、軟件 #房地產、家庭相關、餐飲",
+    "love": "家族基因、遺傳會根深蒂固(保留好的，去除壞的) 孩子會因為家長的一句話而作為天條 會複製家庭的牢籠(要修正及切割家庭的定義)",
+    "note": "會保護自己人 如果被規定一定要一起吃晚餐，7會號召大家一起吃飯",
+    "summary": "2、3、7一樣兇(沒有老大) 7有老大性格 3會用命令照顧 2拯救性格 3、7、20、21家庭牌 20、21會號召吃飯 婚姻 認知水(3、7、13)-要跟他說道理 感知水(2、12、18)-抱一下就好了(適合結婚) 5+7房地產變現",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "與人相處 認知水-有自己與人相處的界線 3-美感(自以為的)、潔癖 B 7-家規、公規、班規、國規 V 13-他認為的真理(BVR) R 要問他們腦中所深信不疑的 感知水(2、12、18)-在意感受性的東西 請、謝謝、對不起、我愛你",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "8": {
+    "num": 8,
+    "name": "啟導者",
+    "keyword": "教練",
+    "element": "火",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "獅子座 表現、權力、地位、領導型人物 會氣很久 氣場比較溫馴 英雄特質",
+    "myth": "赫拉克羅斯-平民英雄 希拉的榮耀(被希拉追殺的最嚴重) 追求心中的榮譽 內斂企圖心 工作狂模式 付出需被肯定 成就感即為養分 從挫敗到成功的經歷",
+    "likeness": "",
+    "advantage": "喜歡扶弱 帶團隊往前衝 內斂企圖心(沒有誠實表達企圖心的勇氣) 追求內在榮譽 喜歡被需要(被依賴) 要有權力地位的成就感與榮譽感 對8，只要讓他覺得你需要他，他就會摸著鼻子做 沒有一個長官不喜歡8(自帶白光) 被信任，可以被交付事情 千錘百鍊來找到別人來虐待你 不是以錢為重要依歸，而是肯定感 內心會渴望我有用 擔心自己沒有影響力 不直觀面對自己的企圖心 挫敗→成功→取得榮耀的歷程(重複進行，因為怎樣都學不會) 追求緊密的師生關係 跟自己比，讓他知道人外有人 #啟蒙、指導 #成為有用的人 #地下皇帝(注重影響力)",
+    "unhealthy": "剝奪他人成長，負擔他人責任-會跟別人說現在應該要怎樣，會管太多 會去管別人人生的事 活在過去的失敗裡，無法肯定自我價值-遇到失敗能量會一蹶不振 一人全能、全家失能",
+    "career": "完8-教練人才 適合當教練、也缺教練 讓你安全的前提之下成長 有職場企圖心(會私下爭取) #啟蒙、指導 #成為別人眼中有用的人 #英雄的旅程 #陪跑教練 #學習挫敗 #千錘百鍊",
+    "love": "隱性大男人 要小心把小孩顧成媽寶 會讓人知道「你是我的」 我要在家裡是有用的 鉅細靡遺的跟他說他的貢獻 讓他比賽是要讓他學習挫敗 8的男生不允許老婆贏過他",
+    "note": "職場溝通 4- 上司-要有尊重的課題，要私下跟他說(就我們兩個人) 不要衝撞 下屬-要先談目標，然後討論事情 8- 長相男生斯文俊秀、女生謙恭有禮 沒有職場溝通課題",
+    "summary": "完4會說出完8的內斂企圖心 完8會讓完4修正對主管的衝撞 如果帶到火能量員工，要協助他們成功，職場霸主。 如果被背叛就代表你比較弱。 4+8 超級領袖 8+16 無法一次攻頂，要販賣失敗(負債千億後的成功企業家) 3、6 販賣美好 8、16都是跌倒再跌倒 8-幫助別人到自己內耗(自己過度干涉) 16-失敗是在累積基石 4、8沒有產業觀，要看自己的知識及專業",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "9": {
+    "num": 9,
+    "name": "穿透者",
+    "keyword": "洞察者",
+    "element": "土",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "處女座 自我要求 心思縝密 秩序完美",
+    "myth": "阿提米斯-阿波羅的姐姐(狩獵女神) 無法被制約 觀察者與品管者 公司領域界線分明 直指問題核心，提供解決方案 抓獵物一擊擊中",
+    "likeness": "",
+    "advantage": "愛挑毛病(看到別人問題) 會用\"我不可能做這種事情\"的眼光看待別人 觀察力好 品管能力好 討厭被干涉私事 直指核心刺死對方(直指問題核心，只做最簡單的方式) 刪去法強 做事情非常精準(以減法為訴求) 很會處理BUG 用BUG提醒他 允許他公私分明(允許他有私領域) 不要打破砂鍋問到底 獵獸性格 直觀、剛強、穿透、洞察 不以失敗為人生策略(減法、刪除、避錯) 如果遇到失敗會發瘋 會因為怕失敗裹足不前 可能成績會跟不上計劃",
+    "unhealthy": "自以為是的龜毛-會直接看著別人毀滅 冷眼旁邊的笑面虎(會不想要髒自己的手) 一個人可以自得其樂(可以容忍孤獨)",
+    "career": "完9-商業顧問 一擊擊中 找痛點 找bug 找碴 用刪去法找出問題，進而變現 討厭冗長的服務 販賣自己時間來抓出問題 商業顧問 律師 品保人員 程式除錯 財務規劃師 鑑定師 資安(0+9+20) 醫生(9+21) #時數制、高價制 #一擊擊中 #公司領域非常分明",
+    "love": "害怕家人出現變的不完美，暖心幫家人收拾殘局 會幫家人成功 會害怕家人闖禍 會為家裡收拾殘局(有血緣關係) 不會刁難家人",
+    "note": "非常精明 精明一輩子，但對家裡完全沒有計較",
+    "summary": "5+5+7+9 會非常焦慮 5+9會因為失敗誘發焦慮 天7+天9 找碴高手",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "10": {
+    "num": 10,
+    "name": "顯化者",
+    "keyword": "幸運人",
+    "element": "土",
+    "face": "外顯",
+    "numTag": "",
+    "astrology": "木星 信念 拓展 高等教育 行星體積大 雍容華貴 大極星",
+    "myth": "宙斯 交換等值 社交與進修 在意有質量的生活品質 幸運與資源 學習與人脈 鶯鶯燕燕變成人格的機會",
+    "likeness": "",
+    "advantage": "沒有顯著的人格設計 掌管資源與幸運 匹配的高等圈層 有許多資源與機會 學習牌(才華的東西) 功利主義(會選與他匹配的朋友) 創造被利用的價值 打從心裡要覺得被幸運照顧 重視條件與匹配的 幸運與資源無遠弗屆 一生不缺資源 10可能是繼承來的(福報設計) 要多捐獻，多做公益 停車場體質(吸引力法則) 運動要找會費貴的 學習為輔，主要是要學人脈",
+    "unhealthy": "發散又自恃甚高(學了很多，但沒有定錨) 落入安逸享受、懶散拖延",
+    "career": "完10-天使投資人 專門投資有機會的產品 高端社群(天使投資人協會) 精品制 透過人脈鏈結，取得高等圈層財富 貴婦圈 賣精品 高級優質旅遊 獵人頭 CSO 高級留學 #人脈、高等圈層 #注重匹配性",
+    "love": "容易用條件選人 對於條件自有標準 虎媽 會要求身邊的人有一定的水準 條件性與匹配性來看人事物",
+    "note": "周更寫顯化日記 睡前冥想前來的路徑 把神經鏈練粗 知道什麼是匹配的，具有條件的",
+    "summary": "導10-都是努力得來的 天10+0風，學習路徑會又散又多(直到炒了一道大菜) 天5+天10 金錢能量爆表 3+10人生真的很幸運",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "11": {
+    "num": 11,
+    "name": "權威者",
+    "keyword": "不一般",
+    "element": "風",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "天秤座 質感、求知、領悟力 貴氣感、貴婦圈 會讓自己看起來得體乾淨 優雅、乾淨、俐落、精品感 薄霧感(薄紗般的距離)、距離感",
+    "myth": "雅典娜-從宙斯大腦出生 重視是非黑白-淡淡的有冷距離(軟釘子) 投射理論 從小被灌輸觀念 11的女孩子會成為男人(父系權威)的驕傲 11的男生會逼自己成為三師 知識與品味 公平與真理 追求父權感 專業性的權威感 被性別制約",
+    "likeness": "心智狀態樣板 11- 17- 20-",
+    "advantage": "質感 求知慾 聰明、領悟力高 有質感 能做貴，不做規模經濟(客製化生產) 標準對人不對事 證照、技職、認證打磨自己(必成權威) 知識與品味 公平與真理 內在記事本(內在小本本)-是非對錯都寫在內在 累積自身專業為權威(女生課題多於男生) 笑面虎(有意識地跟人保持距離) 除了貴、還要更貴的配德感 會被男生的權威感、才華感吸引(會飛蛾撲火) 想要成為男生可以拿來說嘴的戰利品 男生會打磨自己，直到自己成為權威(會一直考證照) 會在那個類別成為權威",
+    "unhealthy": "嚴重的二元對立 落入父系權威的討好(尤其是11的女生)",
+    "career": "完11-高價經濟 法律 警察 三師比例高 產品的客單價要高 人緣好 可以靠證照吃飯 #專業、認證、證照 #累積自身為權威(打磨一技之長) #客製化",
+    "love": "過度父系權威 有11的女生要小心被男主管PUA 有11的女生建議跟男主管，會變得更好 有性別議題 有11的男生會害怕一個很控制他的人 從小被冠上條件的扶養式成長(家裡有權威) 明明是父親的錯，但仍然會指責母親(注重父親認同的病態表現) 很想要成為第二個父親(強迫自己長大) 對家裡的某個權威非常服從 如果被傷到傷痕累累，會推翻他認知的權威",
+    "note": "男生的11會考很多證照，找認證 把自己先做好再讓別人做好 不會主動起衝突(笑、優雅、溫和) 沒有侵略性的要求",
+    "summary": "0、1、6 能量集中營 1、6要有他人支持才可以，所以風能量老大為0 11、17、20 比較沒有接地氣，但有質感 5、9會讓自己成為專家 11讓自己成為權威 9不會考他沒用的證照 11會收集證照",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "12": {
+    "num": 12,
+    "name": "趨勢家",
+    "keyword": "時尚家",
+    "element": "水",
+    "face": "內傾",
+    "numTag": "感知水",
+    "astrology": "海王星 感受力、預知趨勢、藝術美感 讓別人美 時尚、美麗、美體",
+    "myth": "波賽頓 企圖心 忠誠 慈悲 付出與收穫的對等關係 願意給愛，但沒有得到愛會變成海嘯",
+    "likeness": "",
+    "advantage": "讓別人美 適合時尚產業 12會給別人很多愛，如果分數沒有到就會將他排除 要放下付出與收穫的對等關係(要學會我給我驕傲) 直觀的要到回應 容易感受到流行趨勢 忠誠(希望你先關注他) 利他的個性(會搭建讓別人成功的舞台) 超級經紀人(平台聯盟，趨勢感) 感受力強，擁有敏銳的直覺，能夠預知趨勢，對潮流和變化有獨特的洞察力。 企圖心強，對於目標充滿熱情，具有強大的行動力。",
+    "unhealthy": "過度追求付出與收穫的對等關係 需要不在情緒來時做決定 情緒勒索感很重 過於理想化，可能對現實感到失望；容易迷失自我，忽視自身需求。 情感極端，付出卻得不到回報時容易爆發情感風暴，過度控制。",
+    "career": "完全12-設計產業 對長官忠誠、有企圖心(討厭付出沒有被看見) 要哄他 時尚設計(妝、髮) 美妝設計 文化 流行 #讓別人美(美業) #聯盟行銷 #經紀人",
+    "love": "我給我驕傲 要明確讓12知道，我在你的愛裡徜徉",
+    "note": "對於情感上的感覺直觀(會直接要) 要放下付出與收穫的對等關係 趨勢可以放在任何人事物的連結 利他",
+    "summary": "3讓自己美，把流量放在身上 12讓別人美 6的愛情課題是自找的 戀愛\\!\\!Good 12、18、20、6(追求刺激感)、21 當長官沒看見 8會吞下來(切心) 12會直接鬧 職場權威 2掌權威 12掌趨勢 18掌身心靈 3+12美業力強",
+    "subconscious": "愛情觀： 2會不求回報 12會要有對等的愛 18只對他認同的人好",
+    "subconsciousDesc": "",
+    "wealthMind": "被背叛會被原諒？(嘴巴都說不會原諒) 2-有婚姻之後有機會原諒 3-因為孩子而原諒 7-爸媽愛你，且有孩子 12-會立馬找人外遇 13-絕對不會原諒，揭開性醜聞 18-不會原諒，會哭到讓你覺得你對不起他",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "13": {
+    "num": 13,
+    "name": "改革者",
+    "keyword": "新創",
+    "element": "水",
+    "face": "內傾",
+    "numTag": "認知水",
+    "astrology": "天蠍座 自尊、執著、挑戰階級 超強的執著感 敢愛敢恨 會去保護另一半",
+    "myth": "阿基里斯(英雄) 發動革命 改革陋習 過度用力 深研並轉化成一技之長 不死之身",
+    "likeness": "",
+    "advantage": "會因為執著而產生自尊心 擇善固執，只要覺得對的就一定會去做 從政、從商、從專(單一) 憑什麼制度你說了算(反抗、上訴) 要跟他說柔軟是有力量的 要試著把力量分散 人無我有，人有我專(轉化成一技之長) 高瞻遠矚(愛子愛民) 誰當家但無理，他就會衝撞他 能接受新的東西(會專心研究) 難的東西都讓他研究 追求枝微末節 人家沒有的東西，如果是人家已經有的東西，我就要做得比別人更深入(專) 針對枝微末節去爭吵 太過用力或太過想要證明導致反撲 為了改革導致遍體麟傷 會為了大家好導致挑剔，對他的建言要有雅量 會衝撞階級 讓他往小的團體、團隊進發 梳理清晰衝撞的制度中可控與不可控的地方",
+    "unhealthy": "過度用力會變成過度無力 受傷之後進入攻擊性(黑化)或者委靡狀態 當太重視的東西不見，會變成致命傷 會因為執著而爭吵 過度用力的正向及負向行為",
+    "career": "完13-人無我有，人有我專 會喜歡還沒紅的產品 給的建議都是對團隊好 要讓他專心處理一件事情 #專精(產品研發) #冷門科技(新創產品) #人無我有，人有我專",
+    "love": "因為執著會帶來爭吵(愛辯) 可以讓孩子參加正反兩面的對辯 過度辯論會有傷家庭系統 會耗著不分手(不放下)",
+    "note": "要讓13學會放過自己(會怨恨自己) 面對大局與起心動念會去逼迫別人(老師跟校長眼中釘) 13會容易進入心流狀態",
+    "summary": "4號家族4、13、0(領袖家族) 13改變(革)世界 0自由冒險 4領導世界 9、11、13菁英學霸(要給他難的東西) 完10很發散(引導他做好一件事就好) 導7、0水會冷暴力 16會打人 13會冷暴力",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "家庭系統的三大法則 歸屬、平衡、序位",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "14": {
+    "num": 14,
+    "name": "使命家",
+    "keyword": "遊牧民族",
+    "element": "火",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "射手座 旅遊能量、視野能量(高視野)、異地能量強大 呼朋引伴(愛喝酒) 隨\"心\"所欲",
+    "myth": "普羅米修斯 追求世界大同 赫拉克羅斯 人馬座換他 有預言能力 沒有英雄主義",
+    "likeness": "",
+    "advantage": "隨心所欲(浪子/不羈性格) 最不喜歡管人(火能量)也不能被管 放蕩不羈 需要一個可以給他深維的人 覺得太簡單他會臭屁，如果維度深OK 一律下旅遊獎勵(會希望心愛的人陪他去) 商品一律賣異地(賣國外的產品) 要刻意練習/訓練故事力 沒有主管課題 喜歡一直成長(眼界的成長) 非常懂人心(可以啟蒙他人、掌握人心) 會想要了解人在想什麼 透過故事、案例、時事激勵及凝聚 莫名的對人有好奇心 起心動念都是會為了你好(持續力會忽大忽小，持續力要看心做事)",
+    "unhealthy": "利用言語操弄人心 實現無法負擔的承諾（被誤會為開空頭支票）-答應太多無法負擔 會用言語誇大自己 不懂拒絕產生無法負擔的承諾(嘴巴運作太快)，當下會覺得他自己可以",
+    "career": "完全14-語言溝通（職場角色） 用溝通/語言拿到結果（語言拿到人心） #啟蒙他人、掌握人心 #進修表達、溝通 #異國能量 #故事力 #心理",
+    "love": "會有一個飄忽的能量（若即若離） 不喜歡被約束 過度飄忽，很難為家人安定 結婚就是愛你的，為了生命的延續",
+    "note": "最沒有色彩的天賦 最能掌控火能量的人 沒有領導課題",
+    "summary": "4帶14，4會翻臉 8帶14，要增加維度 10+14，異國能量>>90%，適合做國外的投資/買賣(海外房地產) 9-看到缺點 17-看到優點 14-直接知道別人在想什麼 8+14=要教別人（平民英雄）。不要打壓他，會遠離讓他覺得弱的人。 4、我6會把14逼退 5+14邪教教主 1+14可以多學問題提問的能力（要注意他很會說話，言語操弄人心）-說話冠軍 兩性關係 17-人在心不在 14-心、人都不在 14+17抓不到他在想什麼 14要結婚要找高自由的人，盡量找一些高自由的牌。不要找愛情需求高的牌。 14與2結婚，2會比較辛苦(2會覺得14不愛他)，2在婚姻感 8跟14有知遇之恩",
+    "subconscious": "2耳朵 1大腦 14嘴巴 9眼睛",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "15": {
+    "num": 15,
+    "name": "策略家",
+    "keyword": "漏斗腦",
+    "element": "土",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "摩羯座 穩重與韌性 自制力 毅力",
+    "myth": "奧德修斯-木馬屠城記 自我高標與高自尊 策略力與足智多謀 輸贏需坦然的價值觀 創業鉅子 堅持與征服",
+    "likeness": "",
+    "advantage": "腦袋很好 需要智取(作品要有好成績) 漏斗腦 會在意贏的漂不漂亮 在意方法要有高勝率 需要陪伴並且紓解壓力 耐痛力驚人 注重轉換率 商業模式高手 選擇性傾聽嚴重 相信自己，眼見為憑 會比較用力賺錢(要用力才會賺到錢) 靠腦力賺錢 自我高標、高自尊、足智多謀 有征服特性(證明自己很厲害) 追求高度轉換率 虐待→彌補→虐待的循環",
+    "unhealthy": "過度壓抑與自虐模式-容易得瘤、皮膚病 過度相信自己的聰明才智(自視甚高、自以為是)-完15要放在好學校",
+    "career": "完15-幕僚人才 不一定會想要當老闆 喜歡化謀獻策 找他梳理卡關的商業模式 只有15能帶15(任何關係都一樣) 經紀人 廣告公司 品牌顧問 策略顧問 #策略、商業模式 #靠腦力賺錢 #高轉換率",
+    "love": "解除他的壓力 陪伴他，解除他的壓力(不會說) 要讓他好好照顧自己",
+    "note": "15的金錢為度可以做商模(把商業模式架好就好) 追求痛苦完之後的快樂(彌補機制) 2倍法則-同樣的時間逼迫自己，也要花相同時間愛自己",
+    "summary": "天16輸贏要拿名次 天15的輸贏是有沒有智取 天6+天15可以互得其張(6會把15演出來) 土能量金錢觀 5、9、10-出手就要錢 15-花錢有弭補性策略(彌補機制)很容易看似拜金，實則買自己內心的空虛 21-賺了錢之後會把錢放在員工或家庭身上(拿錢證明我是老大，錢會花在捍衛自己) 15會催化16 控制狂三兄弟 13、15、16(自虐型人格)",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "16": {
+    "num": 16,
+    "name": "執行者",
+    "keyword": "業務",
+    "element": "火",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "火星 勇氣、反擊、抵抗 燒、燙、炙熱，輸贏心很重 拚搏型",
+    "myth": "赫菲斯托拉 證明我是贏家 敢愛、敢恨、敢拿 高效果斷 執行力 生產力 耐挫力 適應力 爹不疼、娘不愛(會想要贏得自尊) 高位置的店鋪",
+    "likeness": "",
+    "advantage": "不需要太多訓練就可以自己獲得業績(輸贏心重) 跟他道歉要鉅細靡遺的誠心認錯 企業主超級業務 對於自尊心到了非常執著的狀態(無自尊毋寧死) 無處發洩會進入易怒狀態 脾氣太好會無處發洩 自由落體玩太多 以完成事情為根本來去做 一直受傷也不會痛 自尊心驚人 手工很好 雕琢、生產 追求一個自我的證明(沒有企圖心) 不怕跌倒(因為見過地獄，會覺得最差就這樣了) 創造賽制讓他比賽(他會一直追求第一名) 沒有賽制直接稱讚他，他會非常的有優越感(不一定需要上台) 會容易贏 不能人身攻擊，只能就事論事(可以跟他覆盤) 嚴重的內卷性格",
+    "unhealthy": "無處釋放壓力與挫折，進入易怒狀態 對自尊心的批評會爆炸",
+    "career": "完全16-運動體能 體態、運動相關產業 #業務、運動相關 #生產力 #倔強、不服輸 #登峰造極",
+    "love": "尊重高自尊心 做錯了要好好道歉 鼓勵他比賽",
+    "note": "最怕輸-輸對16而言是人生的重中之重 輸贏心重 需要運動發洩",
+    "summary": "4、16很兇(脾氣不好) 如果直接批評16，他會直接爆炸給你看。盡量不要踩到16的點 有16的人需要操他 4+16適合扁平化組織",
+    "subconscious": "4、16(火海)—8(火苗)—14、19(暖暖包)",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "17": {
+    "num": 17,
+    "name": "理想家",
+    "keyword": "氣球體質",
+    "element": "風",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "水瓶座 靈性氣場、師出好門、出世洞察 氣球型體質、超然在看事物 人間清醒",
+    "myth": "澤菲羅斯-臨門一腳的幸運兒 維納斯誕生圖(人間尤物由我催生) 所有美好事物的臨門一腳者 優勢顧問",
+    "likeness": "心智狀態樣板 11- 17- 20-",
+    "advantage": "求知慾 孤獨異端者(微社恐) 人間清醒者 看事物高維度、超然 ET感、宇宙感(維度太高會讓人覺得瘋了) 支持與利他-優勢顧問 看得到優點，不容易看的到缺點 提供經驗與媒合 有臨門一腳的智慧 看見對方強大 相對客觀 飄然感(氣球般的飄然感) 強大的理想感 會很多人找他問問題，會給最中肯的答案 社恐(會確保環境不會讓他引起社恐，會有格格不入感) 有時候會語出驚人 體驗設計 解離狀態 人際關係好(跟別人不熟也會讓別人覺得很熟) 社會主流價值與多重角色的高度服從者",
+    "unhealthy": "過度得體討好，不允許自己不好 過度包裝自己，會讓別人懷疑自己是否真的完美 會有真實感客題 過度抽離人群進入縹緲狀態(喪屍狀態) 微笑憂鬱症第一名 會很愛面子，害怕別人看到自己的不好 最容易得到微笑憂鬱症(他的微笑是面具) 會演出非常好的狀態",
+    "career": "完17-媒合、服務(優勢教練) 解決需要，設計商品 優雅的解決社會會發生的問題 說我在優雅的解決XXX問題 還是要有確定的方向才有辦法解決問題 適合公益基金會(運作高空但可以幫助人) 最不曲高和寡的知識壓力家 #超級媒合者 #優勢變現者 #優勢教練",
+    "love": "有疏離的出世感 會讓人感覺嚴重的不在乎 對家庭連結不好 做的再多也會讓人家感受不到",
+    "note": "出現課題不會求救，會找老師或課程求救 傾像自救直到溺水",
+    "summary": "17-以內在平靜得到力量，絕對不要再幹這樣的事(只要找到自己的價值) 9-一定要拿結果，只要看到不爽的會直接出手處理 如果拿到 9、17為商業顧問天牌，優缺點都會同時看的到，但容易錯亂。建議分成兩個人 8+17會有人設，有薄霧感 同時有11、17偶包會很重(會不想讓別人看到自己不好，在意別人評價) 11-內在權威在你面前有沒有表現的好 17-我在你面前的表現有沒有表現的好 0、14、17體驗設計 0-親身經歷 14-價值觀傳遞 17-會真的去",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "18": {
+    "num": 18,
+    "name": "感知者",
+    "keyword": "唐三藏",
+    "element": "水",
+    "face": "內傾",
+    "numTag": "感知水",
+    "astrology": "雙魚座 想像力(內心世界豐富) 極端敏感 學習及收集 會讓感覺到我被愛著 勇於敢給愛",
+    "myth": "波西鳳-一夜長大 從天堂摔到地獄(產生恐懼) 無意識的憂鬱 同溫層的愛 傾聽 五感通透 需要被關愛及支持 身心靈的感知能力 四季的由來",
+    "likeness": "",
+    "advantage": "腦神經衰弱第一名 內在力豐富 幻覺多、小劇場多 要面對自己的莫名的恐懼(會無意識放大) 會把擔憂的事情都演一遍而造成擔憂 感知敏銳，對黑暗有連結(特殊的感知能力) 會跟別人共感(共感能力強)-會為了自己的朋友赴湯蹈火，圈子外的人會完全不管 要大量的預知、預演這些事件，才可以面對這些恐懼 因為恐懼讓自己變的不正面 高敏感、腦中有小劇場 失眠、腦神經衰弱 對於感知很強 越老越有錢 五感通透 圈層感重",
+    "unhealthy": "進入無意識的恐懼 栽入情感課題會一蹶不振(恐懼自己...) 對於感情的反撲會很大 如果背叛18會聚眾、煽動攻擊(聚眾性強)",
+    "career": "完18-身心靈大師 醫療 心理學 能量類 #身心靈 #才藝類天才",
+    "love": "依賴型依附 會想要拉著家庭系統的人一起做事情",
+    "note": "對愛的包容力 2>12>18 因為愛反撲 18>12>2 有傷害他人意圖一律看陰影(黑化)",
+    "summary": "1、10、18專門處理才藝、才華 18+20=保證老了有錢第一名(花錢超低調) 會有無意識的黑暗 心智狀態 5-焦慮 18-恐懼",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "水能量送禮物 2-精品(鑽戒) 3-精品(名牌包) 7-不用送(送給家人) 12-精品(名牌包) 13-不用送 18-不用送(對家人、朋友好也會有感覺)",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "19": {
+    "num": 19,
+    "name": "光之子",
+    "keyword": "長輩緣佳",
+    "element": "火",
+    "face": "內傾",
+    "numTag": "帝王數",
+    "astrology": "太陽 目標、希望、意志力、自我形象 溫暖陽光",
+    "myth": "阿波羅 長輩緣/師長緣 被塑造成人生勝利組 輩分很高 正向溫暖 人際關係佳 赤子之心 管理與領導",
+    "likeness": "",
+    "advantage": "追求志向(志向很重要) 目標很重要 尊重自我形象(文質彬彬) 無偶包(站出來就是偶像) 會有人罩他 正向溫暖 人際關係 赤子之心(要常笑，只要笑就好) 管理與領導 人生勝利組 類草莓族 吸引大家圍著他轉(自我) 一笑傾眾生 會去要資源 #求而不得感",
+    "unhealthy": "過度沉溺於鎂光燈中(德不配位) 沉溺被照顧的關係裡-別人是心甘情願地照顧他 最不能遭受挫敗，會因為挫敗導致墜落(人生太順遂) 華而不實，需要厚植實力",
+    "career": "完19-兒少市場(親子產業) 兒童少年市場相對多 補習班 小孩會覺得你跟他同類 媽媽也喜歡你 #自我 #獨樹一格 #笑口常開 #多雪中送炭 #赤子之心",
+    "love": "不要給過高期待-給小孩扣高帽子 成為家族裡面的光 長輩會一直給19資源 我吃過的苦就一定不會讓我孩子吃",
+    "note": "讓長官覺得很棒，會被長官冠上高帽子 莫名其妙會獲得過度期待，卻會被檢討沒做好 很多人很喜歡19，不論怎麼做都很喜歡他 求而不得是摧毀19的炸彈 容易把火格所有的光拿走",
+    "summary": "1、10；19 完全家族牌 6、19不需要經營就可以有偶包 17需要刻意經營自己的質感 8、16失敗是家常便飯，會在輸的時候再努力 3+10+19 天牌 火能量完全人格-從小參加比賽 4-讓他知道人外有人、天外有天 8-輸贏乃兵家常事 14-每次比賽都是在玩 16-收集前三名獎牌(比較容易贏) 19-讓他理解世界上本來就有挫敗存在 遭遇挫折 如果只有19，會很慢才會回復。但如果還有16會加速回復。",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "20": {
+    "num": 20,
+    "name": "計畫者",
+    "keyword": "小棉襖",
+    "element": "風",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "冥王星(有黑暗力量) 歸屬感、沉穩感、一見如故、安全感 掌管危險、嗅覺、風險 危機感強大 洞燭先機、探得風險 在黑暗裡作畫",
+    "myth": "黑帝斯 為了愛情，可以使出計畫讓別人愛上他 轉世、前世情(承諾好這一世要當家人) 家裡提款機",
+    "likeness": "心智狀態樣板 11- 17- 20-",
+    "advantage": "低調 穿著素色為主(單一色系) 討厭麻煩 傳承的設計 風險、危機、計畫能力 財富累積 可靠、忠誠 與家人緊密 預演風險可能來的路徑 不做沒把握的事情(木板體質) 想要找到對應姿態 散發沉穩的神祕感 老來富第一名 容易被貼好人卡",
+    "unhealthy": "危機感過強反而會過度擔憂(要記得每一步都算數，就算跌倒) 怕做錯選擇所以很怕做選擇 在家裡是來報恩的，容易沒有界線的付出 不喜歡變革，缺乏彈性(要清晰知道進度) 沒辦法接收變化(要極度有安全感) 過度干涉家人，讓自己混亂 刻意描畫風險的樣子(都是自己想出來的) 沒有界線的付出 會為了追求安全，導致不敢作選擇",
+    "career": "完20-家族事業(延伸、優化) 家VS族 1. 所有家的周邊 2. 捍衛我旁邊的人(照顧兄弟姊妹) 3. 有族群性 計畫性好，草創型公司天菜 #傳達/理解風險觀念 #品管、PM、專案 #傳承能量",
+    "love": "來報恩的~ 每在家裡付一塊錢，訴願會少一點 有傳承能量(富\\[負\\]二代機會大)",
+    "note": "惦惦吃三碗公，讓人一步步走入陷阱 不衝撞 風險預知性強大 拿下20 1. 要有內核上面的一技之長 2. 當20在愛你的時候要回應，長期不回應會照顧別人",
+    "summary": "所有的風都不可以怕跌倒 價值要透過淬鍊 做錯選擇也可以負的起責任 導6+天20，會用各種方法讓人知道他愛你(留才高手) 完全20-只有00後才會出現 2、18、20有黑暗連結 20-愛黑也怕黑 18-靈異體質寶座王 2-高直覺力(第六感好) 9+20謹慎、怕滑倒",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  },
+  "21": {
+    "num": 21,
+    "name": "建構者",
+    "keyword": "守成、保守",
+    "element": "土",
+    "face": "內傾",
+    "numTag": "",
+    "astrology": "土星 規範 限制 架構 公轉最慢的行星",
+    "myth": "克羅諾斯 穩定與秩序 一步一腳印 與母親的連結-為了媽媽推翻爸爸 守護傳統價值",
+    "likeness": "",
+    "advantage": "用STEP及CHECK LIST 不能飄 喜歡受教、乖巧、倫理、孝順-堅守傳統價值 共振母親的情緒 男生沒有足夠的母愛，身邊不能沒有人睡(彌補沒人愛的渴望，如果都沒有要找一個替代) 對長輩特別有耐心 會問人：你今天吃飽了嗎？(愛的表現) 小心空閨效應(怕寂寞) 為了完成目標而花錢 最兇的，會與環境共振 會比較用力賺錢(要用力才會賺到錢) 靠體力賺錢 會照顧弱小 傳統剛需都歸21 限制他人(自己) 架構性格 塔羅大牌的最後一張，有圓滿達成之意 成功後的延續(老闆性格) 穩定與秩序是相當高的 容易共感媽媽情緒(有母系長輩緣分) 有母系情懷(會餵養對方、照顧對方) 用加薪證明我愛你 老大哥的照顧心態",
+    "unhealthy": "主觀想法過於強烈 自身經驗不容質疑 沒有彈性、沒有變動空間",
+    "career": "完21-銀髮事業 傳統百年產業 教育 醫療 針對銀髮族(50歲以上) 退休產業 有21的男生專門找婆、姑、媽 加薪、給職位 為了留才會不知成本，不知節制 傳統、傳產、百年、剛需 長照 保健品 #用體力賺錢 #照顧經濟 #銀髮經濟 #成功後的傳承(傳承與複製) #餵養、照顧",
+    "love": "渴望被同等照顧",
+    "note": "開會說話的時候 5會辯，21是開放式 21的標準放在傳統的老大性格(等同沒有標準)",
+    "summary": "天10跟天21最需要被尊重 賺錢 5、9、10不覺得自己在賺錢 15、21會把變現、賺錢的目標咬在嘴邊",
+    "subconscious": "",
+    "subconsciousDesc": "",
+    "wealthMind": "",
+    "wealthMindDesc": "",
+    "monetize": "",
+    "monetizeDesc": ""
+  }
+};
+})(typeof window !== 'undefined' ? window : this);
+
+/* ===== js/app.js ===== */
+/*
+ * MMT 天賦原理 — 介面與報告產生 (app.js)
+ */
+(function () {
+  'use strict';
+
+  var C = window.MMTCalc;
+  var D = window.MMTData;
+
+  var ELEMENT_COLORS = { 風: '#6aa9d9', 火: '#e0715a', 水: '#4fb0a5', 土: '#d3a34e' };
+  var ELEMENT_EMOJI = { 風: '🍃', 火: '🔥', 水: '💧', 土: '⛰️' };
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+
+  function talentBadge(num, label) {
+    var t = D.TALENTS[num];
+    var elem = t ? t.element : '';
+    var color = ELEMENT_COLORS[elem] || '#999';
+    var name = t ? t.name : '—';
+    var html =
+      '<div class="badge" style="--c:' + color + '">' +
+        (label ? '<span class="badge-label">' + label + '</span>' : '') +
+        '<span class="badge-num">' + num + '</span>' +
+        '<span class="badge-name">' + name + '</span>' +
+        '<span class="badge-elem">' + (ELEMENT_EMOJI[elem] || '') + elem + '</span>' +
+      '</div>';
+    return html;
+  }
+
+  function listHTML(arr) {
+    return '<ul class="tags">' + arr.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>';
+  }
+
+  function esc(s) { return String(s == null ? '' : s); }
+
+  // ---- 合理化排版：把以空白分隔的要點切成乾淨條列 ----
+  var PH = ''; // 括號內空白暫存符
+  function formatPoints(value) {
+    if (value == null) return [];
+    var s = Array.isArray(value) ? value.join(' ') : String(value);
+    s = s.replace(/　/g, ' ').replace(/[ \t]+/g, ' ').trim();
+    if (!s) return [];
+    // 保護括號／引號內空白
+    s = s.replace(/[（(【「\[][^（()【「\[\])）】」\]]*[)）】」\]]/g, function (m) {
+      return m.split(' ').join(PH);
+    });
+    s = s.replace(/ (?=\d+[.、)])/g, '\n'); // 數字清單標記前斷
+    s = s.replace(/ (?=#)/g, '\n');          // hashtag 前斷
+    s = s.replace(/ /g, '\n');               // 其餘空白斷
+    var parts = s.split('\n').map(function (x) {
+      return x.split(PH).join(' ').trim();
+    }).filter(Boolean);
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (/^\d+[.、)]$/.test(parts[i]) && i + 1 < parts.length) {
+        out.push(parts[i] + ' ' + parts[++i]);
+      } else {
+        out.push(parts[i]);
+      }
+    }
+    return out;
+  }
+
+  function ptsHTML(arr, cls) {
+    if (!arr.length) return '';
+    if (arr.length === 1) return '<p class="' + (cls || '') + '">' + esc(arr[0]) + '</p>';
+    return '<ul class="pts ' + (cls || '') + '">' +
+      arr.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+  }
+
+  // 區塊：非空才輸出，內容自動整形成條列
+  function sec(label, value, cls) {
+    var pts = formatPoints(value);
+    if (!pts.length) return '';
+    return '<div class="tcard-sec ' + (cls || '') + '"><h5>' + label + '</h5>' + ptsHTML(pts, cls) + '</div>';
+  }
+  // 有「主標＋說明」的欄位（潛意識/財富心智/天賦變現）
+  function pairCell(label, main, desc) {
+    var m = formatPoints(main), d = formatPoints(desc);
+    if (!m.length && !d.length) return '';
+    return '<div class="pc"><h6>' + label + '</h6>' +
+      (m.length ? ptsHTML(m, 'pc-main') : '') +
+      (d.length ? ptsHTML(d, 'pc-desc') : '') + '</div>';
+  }
+
+  function talentCardDetail(num, roleLabel) {
+    var t = D.TALENTS[num];
+    if (!t) return '';
+    var color = ELEMENT_COLORS[t.element];
+    var tag = (t.numTag ? '（' + t.numTag + '）' : '');
+    var grid = pairCell('潛意識', t.subconscious, t.subconsciousDesc) +
+               pairCell('財富心智（錨定對標）', t.wealthMind, t.wealthMindDesc) +
+               pairCell('天賦變現', t.monetize, t.monetizeDesc);
+    return '' +
+      '<div class="tcard" style="--c:' + color + '">' +
+        '<div class="tcard-head">' +
+          '<span class="tcard-num">' + t.num + '</span>' +
+          '<div class="tcard-title">' +
+            '<strong>' + t.name + '</strong>' +
+            '<span class="tcard-kw">「' + t.keyword + '」' + tag + '</span>' +
+          '</div>' +
+          '<span class="tcard-tag">' + ELEMENT_EMOJI[t.element] + t.element + '能量 · ' + t.face + '</span>' +
+        '</div>' +
+        (roleLabel ? '<div class="tcard-role">' + roleLabel + '</div>' : '') +
+        '<div class="tcard-cols">' +
+          sec('占星（行為模式）', t.astrology, 'astro') +
+          sec('神話人物', t.myth, 'myth') +
+        '</div>' +
+        sec('天賦優勢', t.advantage, 'adv') +
+        sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow') +
+        sec('討論「像 / 不像」', t.likeness) +
+        sec('應用 · 職場（含完全人格）', t.career) +
+        sec('應用 · 兩性', t.love) +
+        sec('備註', t.note) +
+        sec('總結', t.summary) +
+        (grid ? '<div class="tcard-grid">' + grid + '</div>' : '') +
+      '</div>';
+  }
+
+  // 完全牌區塊
+  function completeSection(result) {
+    var cc = result.completeCards || [];
+    var meta = D.COMPLETE_META || {};
+    var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
+    if (!cc.length) {
+      body += '<p class="hint">這張盤沒有重複出現的天賦號（無明顯完全牌）。可留意天賦與導師是否重疊。</p>';
+    } else {
+      body += '<div class="ov-row">' + cc.map(function (c) {
+        return talentBadge(c.num, '完全 · ' + c.count + ' 張');
+      }).join('') + '</div>';
+      body += cc.map(function (c) {
+        var t = D.TALENTS[c.num];
+        if (!t) return '';
+        return '<div class="cm-line"><b>完全 ' + c.num + '　' + t.name + '「' + t.keyword + '」</b>' +
+          (t.career ? '<span>' + esc(t.career) + '</span>' : '') + '</div>';
+      }).join('');
+    }
+    if (meta.notes && meta.notes.length) {
+      body += '<ul class="cm-notes">' + meta.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>';
+    }
+    return body;
+  }
+
+  // 家族關係區塊
+  function familySection(result) {
+    var groups = result.familyGroups || [];
+    var FAM = D.FAMILIES || {};
+    var TYPE = D.FAMILY_TYPE_DESC || {};
+    if (!groups.length) return '<p class="hint">未觸及任何家族。</p>';
+    return groups.map(function (g) {
+      var f = FAM[g.id] || {};
+      var badges = g.members.map(function (n) {
+        var on = g.present.indexOf(n) >= 0;
+        return talentBadge(n, on ? '有' : '缺');
+      }).join('');
+      var missionRows = (f.mission ? Object.keys(f.mission).map(function (k) {
+        var on = g.present.indexOf(Number(k)) >= 0;
+        return '<li class="' + (on ? 'on' : 'off') + '"><b>' + k + '</b> ' + esc(f.mission[k]) + '</li>';
+      }).join('') : '');
+      return '' +
+        '<div class="fam-card' + (g.complete ? ' complete' : '') + '">' +
+          '<div class="fam-head">' +
+            '<h4>家族 ' + g.id + '　' + esc(f.title || '') + '</h4>' +
+            '<span class="fam-type">' + esc(f.type || '') + (g.complete ? ' · 完全家族 ✦' : ' · ' + g.present.length + '/' + g.members.length) + '</span>' +
+          '</div>' +
+          '<div class="fam-role">' + esc(f.role || '') + '　·　' + esc(f.category || '') + '</div>' +
+          '<div class="fam-badges">' + badges + '</div>' +
+          (missionRows ? '<ul class="fam-mission">' + missionRows + '</ul>' : '') +
+          (f.flow ? '<p class="fam-flow">順流：' + esc(f.flow) + '</p>' : '') +
+          (g.missing.length && !g.complete ? '<p class="fam-missing">缺 ' + g.missing.join('、') + '：三位一體會召喚缺的那一張（可刻意練習補足）。</p>' : '') +
+          (TYPE[f.type] ? '<p class="hint">' + esc(TYPE[f.type]) + '</p>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  function energySection(energy) {
+    var order = ['風', '火', '水', '土'];
+    var bars = order.map(function (e) {
+      var d = energy[e];
+      var info = D.ELEMENTS[e];
+      var levelText = d.level === 'high' ? '高能量' : (d.level === 'zero' ? '0 能量' : '一般');
+      var levelClass = d.level;
+      var detail = d.level === 'zero' ? info.zero : info.high;
+      var showDetail = (d.level === 'high' || d.level === 'zero');
+      return '' +
+        '<div class="energy-row ' + levelClass + '" style="--c:' + ELEMENT_COLORS[e] + '">' +
+          '<div class="energy-top">' +
+            '<span class="energy-name">' + ELEMENT_EMOJI[e] + ' ' + e + '（' + info.pursue + '）</span>' +
+            '<span class="energy-pct">' + d.percent + '% · ' + d.count + ' 張 · <b>' + levelText + '</b></span>' +
+          '</div>' +
+          '<div class="energy-bar"><span style="width:' + Math.max(d.percent, 3) + '%"></span></div>' +
+          (showDetail ?
+            '<div class="energy-detail">' +
+              '<p class="et-traits">' + detail.traits.join('、') + '</p>' +
+              '<p class="et-task">' + detail.task + '</p>' +
+            '</div>' : '') +
+        '</div>';
+    }).join('');
+    return '<div class="energy-wrap">' + bars + '</div>';
+  }
+
+  function masterSection(result) {
+    var m = result.master;
+    var arc = D.MASTER_ARCHETYPE[m] || {};
+    var shadow = result.shadow;
+    var st = D.TALENTS[shadow];
+    var complexKeys = Object.keys(D.COMPLEXES);
+    var relatedComplex = D.COMPLEXES[m] || '';
+    var famBadges = result.family.map(function (n) { return talentBadge(n); }).join('');
+
+    return '' +
+      '<div class="ms-grid">' +
+        '<div class="ms-box">' +
+          '<h4>導師牌 ' + m + '</h4>' +
+          '<p class="ms-arche">原型：<b>' + (arc.archetype || '—') + '</b></p>' +
+          '<p>' + (arc.tend || '') + '</p>' +
+          '<p class="ms-pursue">核心追求：' + (arc.pursue || '—') + '</p>' +
+          (relatedComplex ? '<p class="ms-complex">情節 · ' + relatedComplex + '</p>' : '') +
+          '<p class="hint">導師牌＝挖掘藏在潛意識的天賦（約 30~50% 的天賦能量），可靠刻意練習補足。</p>' +
+        '</div>' +
+        '<div class="ms-box shadow">' +
+          '<h4>陰影牌 ' + shadow + '</h4>' +
+          (st ? '<p class="ms-arche">' + st.name + '「' + st.keyword + '」· ' + ELEMENT_EMOJI[st.element] + st.element + '</p>' : '') +
+          '<p class="hint">陰影＝內在反覆影響自己的暗流；沒有出現的家族號碼即為陰影。跨過之後，黑暗越多、成就也越多。</p>' +
+        '</div>' +
+        '<div class="ms-box">' +
+          '<h4>家族牌</h4>' +
+          '<div class="fam-badges">' + famBadges + '</div>' +
+          '<p class="hint">同一家族（相同數字根）彼此呼應，三位一體可彌補缺陷。</p>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function yearSection(result) {
+    var ys = result.yearStrategy;
+    var t = D.TALENTS[ys];
+    return '' +
+      '<div class="year-box">' +
+        '<div class="year-head">' + result.targetYear + ' 年度策略號碼：<b>' + ys + '</b></div>' +
+        (t ?
+          '<div class="year-body">' +
+            '<p><b>' + t.name + '「' + t.keyword + '」</b> · ' + ELEMENT_EMOJI[t.element] + t.element + '能量</p>' +
+            '<p>今年可有意識地運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' +
+            '<p class="hint">計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
+          '</div>' : '') +
+      '</div>';
+  }
+
+  function stepsSection() {
+    var rows = D.READING_STEPS.map(function (s) {
+      return '<li><span class="step-tag">' + s.step + '</span><b>' + s.title + '</b>：' + s.desc + '</li>';
+    }).join('');
+    return '<ol class="steps">' + rows + '</ol>';
+  }
+
+  function sectionCard(title, subtitle, bodyHTML) {
+    return '' +
+      '<section class="report-section">' +
+        '<div class="section-head"><h3>' + title + '</h3>' + (subtitle ? '<span>' + subtitle + '</span>' : '') + '</div>' +
+        bodyHTML +
+      '</section>';
+  }
+
+  function render(result) {
+    var out = $('#report');
+    var innerLabels = ['第一張', '第二張', '第三張'];
+    var outerLabels = ['第四張', '第五張', '第六張'];
+
+    var overviewBadges =
+      '<div class="overview-cards">' +
+        '<div class="ov-group"><h5>內在三張（自身思維設計）</h5><div class="ov-row">' +
+          result.inner.map(function (n, i) { return talentBadge(n, innerLabels[i]); }).join('') +
+        '</div></div>' +
+        '<div class="ov-group"><h5>外在三張（與世界的相處 · 連號）</h5><div class="ov-row">' +
+          result.outer.map(function (n, i) { return talentBadge(n, outerLabels[i]); }).join('') +
+        '</div></div>' +
+        '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
+          talentBadge(result.master, '導師') + talentBadge(result.shadow, '陰影') +
+        '</div></div>' +
+      '</div>';
+
+    var b = result.birthday;
+    var header =
+      '<div class="report-header">' +
+        '<h2>' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + ' 的天賦設計</h2>' +
+        '<p>查詢年份：' + result.targetYear + '　·　六張天賦牌：' + result.talentCards.join('、') + '</p>' +
+      '</div>';
+
+    // 內在＋外在六張的詳細解說
+    var detailCards = '';
+    result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i]); });
+    result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i]); });
+
+    var html =
+      header +
+      '<div class="report-actions"><button id="btn-print" class="btn-print">🖨️ 列印 / 存成 PDF</button></div>' +
+      sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
+      sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
+      sectionCard('完全牌', '重複出現、能量完全發揮的號碼', completeSection(result)) +
+      sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
+      sectionCard('六張天賦牌 · 詳細解讀', '內在 3 張 + 外在 3 張（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
+      sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
+      sectionCard('年度策略', '今年的心智策略', yearSection(result)) +
+      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection());
+
+    out.innerHTML = html;
+    out.classList.add('has-report');
+    var pb = document.getElementById('btn-print');
+    if (pb) pb.addEventListener('click', function () { window.print(); });
+    out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function pad2(n) { n = Number(n); return (n < 10 ? '0' : '') + n; }
+
+  function daysInMonth(y, m) {
+    return new Date(y, m, 0).getDate();
+  }
+
+  function fillSelects() {
+    var ySel = $('#in-year'), mSel = $('#in-month'), dSel = $('#in-day'), tSel = $('#in-target');
+    var nowYear = 2026;
+    for (var y = nowYear; y >= 1920; y--) ySel.appendChild(new Option(y, y));
+    for (var m = 1; m <= 12; m++) mSel.appendChild(new Option(m + ' 月', m));
+    for (var d = 1; d <= 31; d++) dSel.appendChild(new Option(d + ' 日', d));
+    for (var t = nowYear + 2; t >= 2000; t--) tSel.appendChild(new Option(t + ' 年', t));
+    tSel.value = String(nowYear);
+    mSel.value = '1';
+    dSel.value = '1';
+  }
+
+  function clampDay() {
+    var y = Number($('#in-year').value), m = Number($('#in-month').value);
+    var dSel = $('#in-day');
+    if (!y || !m) return;
+    var max = daysInMonth(y, m);
+    var cur = Number(dSel.value);
+    Array.prototype.forEach.call(dSel.options, function (o) {
+      o.disabled = Number(o.value) > max;
+    });
+    if (cur > max) dSel.value = String(max);
+  }
+
+  function onGenerate() {
+    var y = Number($('#in-year').value);
+    var m = Number($('#in-month').value);
+    var d = Number($('#in-day').value);
+    var t = Number($('#in-target').value);
+    if (!y || !m || !d) return;
+    if (d > daysInMonth(y, m)) { d = daysInMonth(y, m); $('#in-day').value = String(d); }
+    var result = C.analyze(y, m, d, t);
+    render(result);
+    try {
+      localStorage.setItem('mmt:last', JSON.stringify({ y: y, m: m, d: d, t: t }));
+    } catch (e) {}
+  }
+
+  function restoreLast() {
+    try {
+      var raw = localStorage.getItem('mmt:last');
+      if (!raw) return;
+      var v = JSON.parse(raw);
+      if (v.y) $('#in-year').value = String(v.y);
+      if (v.m) $('#in-month').value = String(v.m);
+      clampDay();
+      if (v.d) $('#in-day').value = String(v.d);
+      if (v.t) $('#in-target').value = String(v.t);
+    } catch (e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    fillSelects();
+    restoreLast();
+    $('#in-year').addEventListener('change', clampDay);
+    $('#in-month').addEventListener('change', clampDay);
+    $('#btn-generate').addEventListener('click', onGenerate);
+  });
+})();
+
+  </script>
+</body>
+</html>
