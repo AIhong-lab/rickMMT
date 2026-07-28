@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+# 每次推送到此分支時，自動把網頁部署到 GitHub Pages。
+# 只發佈 index.html / assets / js，避免把 data/ 內的課程原文整理公開出去。
+
+on:
+  push:
+    branches:
+      - claude/auto-generate-website-analysis-s0jyfp
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble public site (只放公開資產)
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp -r assets _site/
+          cp -r js _site/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
