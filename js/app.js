@@ -185,7 +185,7 @@
     var html =
       header +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
-      sectionCard('四大能量', '風火水土分佈（>25% 為高能量，0 張為 0 能量）', energySection(result.energy)) +
+      sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
       sectionCard('六張天賦牌 · 詳細解讀', '內在 3 張 + 外在 3 張', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族', '潛意識與內在暗流', masterSection(result)) +
       sectionCard('年度策略', '今年的心智策略', yearSection(result)) +

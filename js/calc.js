@@ -115,7 +115,8 @@
     7: 6, 8: 15, 9: 2, 10: 10, 11: 19, 12: 5
   };
 
-  var OUTER_MODE = 'forward'; // 'forward' = [g, g+1, g+2]；'center' = [g-1, g, g+1]
+  // 已依實際排盤校準：查表值為「中間張」，故外在三張 = [g-1, g, g+1]。
+  var OUTER_MODE = 'center'; // 'center' = [g-1, g, g+1]（預設）；'forward' = [g, g+1, g+2]
 
   // 年輪查表：回傳 1~22（22 = 0 由 toCardNumber 處理）
   function gridRaw(month, day) {
@@ -247,6 +248,9 @@
 
     var m = master(year, month, day);
 
+    // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張），已依實際排盤校準。
+    var energyCards = talentCards.concat([m]);
+
     return {
       birthday: { year: year, month: month, day: day },
       targetYear: targetYear,
@@ -257,7 +261,8 @@
       shadow: shadow(m),                 // 陰影牌
       family: family(m),                 // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
-      energy: energy(talentCards),       // 四大能量
+      energyCards: energyCards,          // 計算能量所用的牌組（含導師）
+      energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
       elementOf: ELEMENT_OF
     };
   }
