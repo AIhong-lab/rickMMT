@@ -539,14 +539,13 @@ body{
     return (FAMILIES[masterNum] || []).slice();
   }
 
-  // 導師 -> 陰影（原型對照）。陰影 = 該家族中未顯現、藏於潛意識的號碼。
-  var SHADOW_MAP = {
-    1: 19, 2: 11, 3: 12, 4: 13, 5: 14,
-    6: 15, 7: 16, 8: 17, 9: 18
-  };
-
-  function shadow(masterNum) {
-    return SHADOW_MAP[masterNum];
+  // 陰影牌 = 導師所屬家族中「沒有出現在天賦牌」的號碼（導師本身除外）。
+  //   例：導師 6 → 家族 {6,15}，15 不在天賦 → 陰影 15。
+  //   可能有 0~2 張；若家族成員都已出現，則沒有陰影。
+  function shadowOf(masterNum, talentCards) {
+    return family(masterNum).filter(function (n) {
+      return n !== masterNum && talentCards.indexOf(n) < 0;
+    });
   }
 
   /* =============================================================
@@ -666,7 +665,7 @@ body{
       outer: outer,                      // 外在三張（連號）
       boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
       master: m,                         // 導師牌 (1~9)
-      shadow: shadow(m),                 // 陰影牌
+      shadow: shadowOf(m, talentCards),  // 陰影牌（家族中未出現的號碼，0~2 張）
       family: family(m),                 // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
@@ -689,7 +688,7 @@ body{
     outerCards: outerCards,
     gridRaw: gridRaw,
     master: master,
-    shadow: shadow,
+    shadowOf: shadowOf,
     family: family,
     yearStrategy: yearStrategy,
     energy: energy,
@@ -1676,11 +1675,14 @@ body{
   function masterSection(result) {
     var m = result.master;
     var arc = D.MASTER_ARCHETYPE[m] || {};
-    var shadow = result.shadow;
-    var st = D.TALENTS[shadow];
-    var complexKeys = Object.keys(D.COMPLEXES);
+    var shadow = result.shadow; // 陣列
     var relatedComplex = D.COMPLEXES[m] || '';
     var famBadges = result.family.map(function (n) { return talentBadge(n); }).join('');
+    var shadowNums = shadow.length ? shadow.join('、') : '無';
+    var shadowDetail = shadow.map(function (n) {
+      var st = D.TALENTS[n];
+      return st ? '<p class="ms-arche">' + n + ' ' + st.name + '「' + st.keyword + '」· ' + ELEMENT_EMOJI[st.element] + st.element + '</p>' : '';
+    }).join('');
 
     return '' +
       '<div class="ms-grid">' +
@@ -1693,9 +1695,9 @@ body{
           '<p class="hint">導師牌＝挖掘藏在潛意識的天賦（約 30~50% 的天賦能量），可靠刻意練習補足。</p>' +
         '</div>' +
         '<div class="ms-box shadow">' +
-          '<h4>陰影牌 ' + shadow + '</h4>' +
-          (st ? '<p class="ms-arche">' + st.name + '「' + st.keyword + '」· ' + ELEMENT_EMOJI[st.element] + st.element + '</p>' : '') +
-          '<p class="hint">陰影＝內在反覆影響自己的暗流；沒有出現的家族號碼即為陰影。跨過之後，黑暗越多、成就也越多。</p>' +
+          '<h4>陰影牌 ' + shadowNums + '</h4>' +
+          shadowDetail +
+          '<p class="hint">陰影＝導師家族中「沒有出現在天賦牌」的號碼，是內在反覆影響自己的暗流。跨過之後，黑暗越多、成就也越多。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
@@ -1804,7 +1806,10 @@ body{
         '</div></div>' +
         boundaryGroup +
         '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
-          talentBadge(result.master, '導師') + talentBadge(result.shadow, '陰影') +
+          talentBadge(result.master, '導師') +
+          (result.shadow.length
+            ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
+            : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
         '</div></div>' +
       '</div>';
 

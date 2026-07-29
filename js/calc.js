@@ -169,14 +169,13 @@
     return (FAMILIES[masterNum] || []).slice();
   }
 
-  // 導師 -> 陰影（原型對照）。陰影 = 該家族中未顯現、藏於潛意識的號碼。
-  var SHADOW_MAP = {
-    1: 19, 2: 11, 3: 12, 4: 13, 5: 14,
-    6: 15, 7: 16, 8: 17, 9: 18
-  };
-
-  function shadow(masterNum) {
-    return SHADOW_MAP[masterNum];
+  // 陰影牌 = 導師所屬家族中「沒有出現在天賦牌」的號碼（導師本身除外）。
+  //   例：導師 6 → 家族 {6,15}，15 不在天賦 → 陰影 15。
+  //   可能有 0~2 張；若家族成員都已出現，則沒有陰影。
+  function shadowOf(masterNum, talentCards) {
+    return family(masterNum).filter(function (n) {
+      return n !== masterNum && talentCards.indexOf(n) < 0;
+    });
   }
 
   /* =============================================================
@@ -296,7 +295,7 @@
       outer: outer,                      // 外在三張（連號）
       boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
       master: m,                         // 導師牌 (1~9)
-      shadow: shadow(m),                 // 陰影牌
+      shadow: shadowOf(m, talentCards),  // 陰影牌（家族中未出現的號碼，0~2 張）
       family: family(m),                 // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
@@ -319,7 +318,7 @@
     outerCards: outerCards,
     gridRaw: gridRaw,
     master: master,
-    shadow: shadow,
+    shadowOf: shadowOf,
     family: family,
     yearStrategy: yearStrategy,
     energy: energy,
