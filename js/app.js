@@ -476,7 +476,7 @@
     var header =
       '<div class="report-header">' +
         '<h2>' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + ' 的天賦設計</h2>' +
-        '<p>查詢年份：' + result.targetYear + '　·　天賦牌：' + result.talentCards.join('、') + '</p>' +
+        '<p>天賦牌：' + result.talentCards.join('、') + '</p>' +
       '</div>' + focusBanner;
 
     // 內在＋外在六張的詳細解說
@@ -497,7 +497,6 @@
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
-      sectionCard('年度策略', '今年的心智策略', yearSection(result)) +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
       clientReportHTML(result);
 
@@ -538,8 +537,10 @@
     for (var y = nowYear; y >= 1920; y--) ySel.appendChild(new Option(y, y));
     for (var m = 1; m <= 12; m++) mSel.appendChild(new Option(m + ' 月', m));
     for (var d = 1; d <= 31; d++) dSel.appendChild(new Option(d + ' 日', d));
-    for (var t = nowYear + 2; t >= 2000; t--) tSel.appendChild(new Option(t + ' 年', t));
-    tSel.value = String(nowYear);
+    if (tSel) {
+      for (var t = nowYear + 2; t >= 2000; t--) tSel.appendChild(new Option(t + ' 年', t));
+      tSel.value = String(nowYear);
+    }
     mSel.value = '1';
     dSel.value = '1';
   }
@@ -565,7 +566,7 @@
     var y = Number($('#in-year').value);
     var m = Number($('#in-month').value);
     var d = Number($('#in-day').value);
-    var t = Number($('#in-target').value);
+    var t = $('#in-target') ? Number($('#in-target').value) : 2026;
     if (!y || !m || !d) return;
     if (d > daysInMonth(y, m)) { d = daysInMonth(y, m); $('#in-day').value = String(d); }
     var question = $('#in-question') ? $('#in-question').value : '';
@@ -585,7 +586,7 @@
       if (v.m) $('#in-month').value = String(v.m);
       clampDay();
       if (v.d) $('#in-day').value = String(v.d);
-      if (v.t) $('#in-target').value = String(v.t);
+      if (v.t && $('#in-target')) $('#in-target').value = String(v.t);
     } catch (e) {}
   }
 
