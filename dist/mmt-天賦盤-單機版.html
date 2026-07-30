@@ -63,6 +63,23 @@ body{
 }
 .field-q input:focus{outline:none;border-color:var(--accent)}
 .field-q input::placeholder{color:#6b7098}
+.form-grid-3{grid-template-columns:1fr 1fr 1fr;margin-top:14px}
+.field-t input{
+  background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
+  padding:11px 12px;font-size:15px;font-family:inherit;width:100%;
+}
+.field-t input:focus{outline:none;border-color:var(--accent)}
+.field-t input::placeholder{color:#6b7098}
+.energy-input{margin-top:16px}
+.energy-input-label{display:block;font-size:12.5px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px}
+.energy-input-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.energy-input-grid label{display:flex;align-items:center;gap:8px;background:var(--panel-solid);
+  border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.energy-input-grid span{font-size:14px;white-space:nowrap;color:var(--text)}
+.energy-input-grid input{background:transparent;border:none;color:var(--text);font-size:15px;
+  font-family:inherit;width:100%;min-width:0}
+.energy-input-grid input:focus{outline:none}
+.energy-input-grid input::placeholder{color:#6b7098}
 .level-row{display:flex;align-items:center;gap:16px;margin-top:12px;font-size:13.5px;color:var(--muted)}
 .level-row label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:var(--text)}
 .level-row input{accent-color:var(--gold);cursor:pointer}
@@ -283,6 +300,7 @@ body{
 /* RWD */
 @media (max-width:820px){
   .form-grid{grid-template-columns:1fr 1fr}
+  .energy-input-grid{grid-template-columns:1fr 1fr}
   .tcards{grid-template-columns:1fr}
   .ms-grid{grid-template-columns:1fr}
   .tcard-grid{grid-template-columns:1fr}
@@ -385,22 +403,43 @@ body{
 
   <main class="container">
     <section class="input-panel">
-      <h2>輸入你的西元生日</h2>
-      <p class="input-sub">系統會依 MMT 天賦原理，自動計算你的六張天賦牌、導師與陰影、四大能量與年度策略。</p>
-      <div class="form-grid">
-        <label class="field">
-          <span>出生年</span>
-          <select id="in-year"></select>
+      <h2>輸入你的天賦盤</h2>
+      <p class="input-sub">直接填入你已排好的天賦盤數字，系統只負責生成完整的敘述解讀，<b>不進行計算</b>。</p>
+      <label class="field field-q">
+        <span>稱呼／姓名（可留空）</span>
+        <input id="in-name" type="text" autocomplete="off" placeholder="例如：小明／客戶 A">
+      </label>
+      <label class="field field-q">
+        <span>天賦號碼（用逗號或空白分隔）</span>
+        <input id="in-talents" type="text" autocomplete="off" placeholder="例如：0, 4, 8, 9, 10, 11">
+      </label>
+      <div class="form-grid form-grid-3">
+        <label class="field field-t">
+          <span>導師</span>
+          <input id="in-master" type="text" autocomplete="off" placeholder="例如：3">
         </label>
-        <label class="field">
-          <span>月</span>
-          <select id="in-month"></select>
+        <label class="field field-t">
+          <span>陰影（可多張）</span>
+          <input id="in-shadow" type="text" autocomplete="off" placeholder="例如：12, 21">
         </label>
-        <label class="field">
-          <span>日</span>
-          <select id="in-day"></select>
+        <label class="field field-t">
+          <span>年度策略號碼（5–16）</span>
+          <input id="in-year-strategy" type="text" autocomplete="off" placeholder="例如：10">
         </label>
       </div>
+      <div class="energy-input">
+        <span class="energy-input-label">四大能量比例（%）</span>
+        <div class="energy-input-grid">
+          <label><span>🍃 風</span><input id="in-e-wind" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>🔥 火</span><input id="in-e-fire" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>💧 水</span><input id="in-e-water" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" min="0" max="100" placeholder="0"></label>
+        </div>
+      </div>
+      <label class="field field-q">
+        <span>年份標籤（可留空 · 顯示在年度策略）</span>
+        <input id="in-year-label" type="text" autocomplete="off" placeholder="例如：2026">
+      </label>
       <label class="field field-q">
         <span>想問的問題（可留空 · 會依主題聚焦顯示）</span>
         <input id="in-question" type="text" autocomplete="off"
@@ -411,7 +450,7 @@ body{
         <label><input type="radio" name="level" value="concise" checked> 精簡</label>
         <label><input type="radio" name="level" value="full"> 完整</label>
       </div>
-      <button id="btn-generate" class="btn-generate">✦ 生成我的天賦盤</button>
+      <button id="btn-generate" class="btn-generate">✦ 生成天賦盤解讀</button>
     </section>
 
     <div id="report" class="report"></div>
@@ -422,361 +461,6 @@ body{
     </footer>
   </main>
   <script>
-/* ===== js/calc.js ===== */
-/*
- * MMT 天賦原理 — 計算引擎 (calc.js)
- * -------------------------------------------------------------
- * 資料來源：Google Drive「MMT課程 / MMT1階-直版天賦原理.pdf」與「MMT上課整理」試算表。
- * 全部計算方式皆依照上述課程原理，僅供個人使用。
- *
- * 天賦號碼範圍：0 ~ 21（共 22 個號碼）。慣例上「22 = 0」。
- * -------------------------------------------------------------
- */
-(function (global) {
-  'use strict';
-
-  /* =============================================================
-   * 1. 基礎工具
-   * ============================================================= */
-
-  // 把一串數字字元全部相加，例如 "19840920" -> 1+9+8+4+0+9+2+0 = 33
-  function sumDigits(str) {
-    return String(str)
-      .split('')
-      .reduce(function (acc, ch) {
-        var n = parseInt(ch, 10);
-        return acc + (isNaN(n) ? 0 : n);
-      }, 0);
-  }
-
-  // 反覆做「數字相加」直到剩下個位數 (1~9)。用於導師牌。
-  function digitRoot(n) {
-    n = Math.abs(n);
-    while (n > 9) {
-      n = sumDigits(n);
-    }
-    return n;
-  }
-
-  // 反覆做「數字相加」直到 <= max（用於年度策略，max = 21）。
-  function reduceUntil(n, max) {
-    n = Math.abs(n);
-    while (n > max) {
-      n = sumDigits(n);
-    }
-    return n;
-  }
-
-  // 「超過 22 的部分要減去 22，直到 <= 22 即可 (22 = 0)」。
-  // 回傳值介於 1~22，其中 22 代表天賦號碼 0。
-  function reduce22(n) {
-    n = Math.abs(n);
-    while (n > 22) {
-      n -= 22;
-    }
-    if (n === 0) n = 22; // 理論上不會發生，保底
-    return n;
-  }
-
-  // 把 reduce22 的結果（1~22）轉成天賦號碼（0~21），22 -> 0。
-  function toCardNumber(v) {
-    return v === 22 ? 0 : v;
-  }
-
-  /* =============================================================
-   * 2. 天賦牌 1 ~ 3（自身內在思維）
-   * ============================================================= */
-
-  // 第一張牌 = 生日「日」。1~21 原值；22 = 0；23~31 為各位數字相加。
-  var DAY_TABLE = {
-    1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10,
-    11: 11, 12: 12, 13: 13, 14: 14, 15: 15, 16: 16, 17: 17, 18: 18,
-    19: 19, 20: 20, 21: 21,
-    22: 0,       // 22 = 0
-    23: 5,       // 2+3
-    24: 6,       // 2+4
-    25: 7,       // 2+5
-    26: 8,       // 2+6
-    27: 9,       // 2+7
-    28: 1,       // 2+8 = 10 = 1
-    29: 2,       // 2+9 = 11 = 2
-    30: 3,       // 3+0
-    31: 4        // 3+1
-  };
-
-  function card1(day) {
-    return DAY_TABLE[day];
-  }
-
-  // 第二張牌 = 生日「所有數字」相加，超過 22 減 22。
-  function card2(year, month, day) {
-    var all = String(year) + pad2(month) + pad2(day);
-    return toCardNumber(reduce22(sumDigits(all)));
-  }
-
-  // 第三張牌 = 西元年各位數字相加 + 月 + 日（月日不拆），超過 22 減 22。
-  function card3(year, month, day) {
-    var sum = sumDigits(year) + Number(month) + Number(day);
-    return toCardNumber(reduce22(sum));
-  }
-
-  /* =============================================================
-   * 3. 天賦牌 4 ~ 6（與世界關聯的相處方式，必為連號）
-   * -------------------------------------------------------------
-   * 依 PDF「年輪」查表：以「月」決定起始號、每一天 +1（在 1~22 之間循環）。
-   * 經與 PDF 對照，整張查表可用下列公式完全重現：
-   *   grid(月, 日) = ((monthBase[月] - 1 + (日 - 1)) mod 22) + 1   // 值域 1~22，22 = 0
-   * monthBase 為每個月「1 日」的號碼。
-   *
-   * 第四張牌 = grid(月, 日)，第五、六張為其後連號。
-   *   例：2/29 -> 連號 (依課程筆記「15、16、17」)。
-   *
-   * ⚠️ 連號方向待確認：預設採 [grid, grid+1, grid+2]（第四張為起點）。
-   *    若你手上的排盤是以查表值為「中間張」，把 OUTER_MODE 改成 'center' 即可。
-   * ============================================================= */
-
-  var MONTH_BASE = {
-    1: 1, 2: 10, 3: 16, 4: 3, 5: 11, 6: 20,
-    7: 6, 8: 15, 9: 2, 10: 10, 11: 19, 12: 5
-  };
-
-  // 已依實際排盤校準：查表值為「中間張」，故外在三張 = [g-1, g, g+1]。
-  var OUTER_MODE = 'center'; // 'center' = [g-1, g, g+1]（預設）；'forward' = [g, g+1, g+2]
-
-  // 年輪查表：回傳 1~22（22 = 0 由 toCardNumber 處理）
-  function gridRaw(month, day) {
-    var base = MONTH_BASE[month];
-    var v = ((base - 1 + (day - 1)) % 22) + 1;
-    return v;
-  }
-
-  // 在 1~22 的環上前進 step 步
-  function wheelStep(v1to22, step) {
-    var v = ((v1to22 - 1 + step) % 22 + 22) % 22 + 1;
-    return v;
-  }
-
-  function outerCards(month, day) {
-    var g = gridRaw(month, day);
-    var raw;
-    if (OUTER_MODE === 'center') {
-      raw = [wheelStep(g, -1), g, wheelStep(g, 1)];
-    } else {
-      raw = [g, wheelStep(g, 1), wheelStep(g, 2)];
-    }
-    return raw.map(toCardNumber);
-  }
-
-  /* =============================================================
-   * 4. 導師牌 / 陰影牌 / 家族牌
-   * ============================================================= */
-
-  // 家族牌：同「數字根」的家族群組（22 = 0 歸在家族 4）。
-  var FAMILIES = {
-    1: [1, 10, 19],
-    2: [2, 11, 20],
-    3: [3, 12, 21],
-    4: [4, 13, 0],   // 0(=22) 屬家族 4
-    5: [5, 14],
-    6: [6, 15],
-    7: [7, 16],
-    8: [8, 17],
-    9: [9, 18]
-  };
-
-  function family(masterNum) {
-    return (FAMILIES[masterNum] || []).slice();
-  }
-
-  // 導師牌（可能雙導師 / 三導師）
-  // -------------------------------------------------------------
-  // 生命靈數 R：所有數字相加 S。若 S<=22 則 R=S（保留兩位數）；S>22 則化到個位數。
-  //   R 若落在 10~22，就會有多張導師（家族中 <= R 的成員）。
-  //   例：R=10 → {1,10}；R=19 → {1,10,19}；R=22 → {4,13,0}。
-  //   此時第二張天賦牌 = R，故必定形成完全牌（天賦∩導師）。
-  // 導師牌（單一）＝生日所有數字相加，反覆相加到個位數 (1~9)。
-  //   例 1983/5/22：1+9+8+3+5+2+2 = 30 → 3；2016/11/12：…=14 → 5；1984/9/20：…=33 → 6。
-  //   已與官方排盤工具對照：導師只有一張。
-  function masterInfo(year, month, day) {
-    var all = String(year) + pad2(month) + pad2(day);
-    var root = digitRoot(sumDigits(all));
-    return { root: root, cards: [root] };
-  }
-
-  // 十二個陰影原型：0 與 11~21。注意 10 不作陰影。
-  var SHADOW_ARCHETYPES = { 0: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
-
-  // 陰影牌＝導師所屬家族中「不是導師、也沒有出現在天賦牌」且「屬於十二陰影原型」的號碼。
-  //   例 導師3 家族{3,12,21}，12、21 不在天賦 → 陰影 12、21。
-  //   若家族成員出現在天賦牌，則成為完全牌（不是陰影）。10 不作陰影。
-  function shadowOf(root, talentCards) {
-    return family(root).filter(function (n) {
-      return n !== root && talentCards.indexOf(n) < 0 && SHADOW_ARCHETYPES[n];
-    });
-  }
-
-  /* =============================================================
-   * 5. 年度策略
-   * -------------------------------------------------------------
-   * = 查詢年份 + 月 + 日，反覆數字相加直到 <= 21（22 = 0）。
-   *   例：2024 + 1 + 28 = 2053 -> 2+0+5+3 = 10。
-   * ============================================================= */
-  function yearStrategy(targetYear, month, day) {
-    var sum = Number(targetYear) + Number(month) + Number(day);
-    var v = reduceUntil(sum, 21);
-    return v; // 已在 0~21 範圍
-  }
-
-  /* =============================================================
-   * 6. 四大能量分佈
-   * -------------------------------------------------------------
-   * 依六張天賦牌所屬元素（風火水土）統計。
-   *   高能量：占比 >= 25%；0 能量：完全沒有出現。
-   * ============================================================= */
-  var ELEMENT_OF = {
-    0: '風', 1: '風', 6: '風', 11: '風', 17: '風', 20: '風',
-    4: '火', 8: '火', 14: '火', 16: '火', 19: '火',
-    2: '水', 3: '水', 7: '水', 12: '水', 13: '水', 18: '水',
-    5: '土', 9: '土', 10: '土', 15: '土', 21: '土'
-  };
-
-  function energy(cards) {
-    var counts = { 風: 0, 火: 0, 水: 0, 土: 0 };
-    cards.forEach(function (n) {
-      var e = ELEMENT_OF[n];
-      if (e) counts[e] += 1;
-    });
-    var total = cards.length || 1;
-    var result = {};
-    ['風', '火', '水', '土'].forEach(function (e) {
-      var pct = Math.round((counts[e] / total) * 1000) / 10;
-      result[e] = {
-        count: counts[e],
-        percent: pct,
-        level: counts[e] === 0 ? 'zero' : (pct >= 25 ? 'high' : 'normal')
-      };
-    });
-    return result;
-  }
-
-  /* =============================================================
-   * 7. 對外主函式
-   * ============================================================= */
-  function pad2(n) {
-    n = Number(n);
-    return (n < 10 ? '0' : '') + n;
-  }
-
-  // 判斷完全設計 / 天賦設計 / 導師設計：
-  //   若某天賦牌同時等於導師牌所屬家族的核心（導師號），視為「完全」該號。
-  //   這裡以「天賦牌與導師家族是否重疊」做為輔助判讀，詳細仍需人工解盤。
-  function analyze(year, month, day, targetYear) {
-    year = Number(year);
-    month = Number(month);
-    day = Number(day);
-    targetYear = Number(targetYear);
-
-    var c1 = card1(day);
-    var c2 = card2(year, month, day);
-    var c3 = card3(year, month, day);
-    var outer = outerCards(month, day);
-    var talentCards = [c1, c2, c3, outer[0], outer[1], outer[2]];
-
-    // 天地交界：1/1 多一張 13、12/31 多一張 1（會多一張天賦牌）。
-    var boundaryCard = null;
-    if (month === 1 && day === 1) boundaryCard = 13;
-    else if (month === 12 && day === 31) boundaryCard = 1;
-    if (boundaryCard !== null) talentCards.push(boundaryCard);
-
-    var mi = masterInfo(year, month, day);
-    var masterRoot = mi.root;          // 導師（單一數字 1~9）
-    var masterCards = mi.cards;        // [導師]（保留陣列形式以相容顯示）
-    var fam = family(masterRoot);      // 導師所屬家族
-
-    // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張；天地交界為 8 張）。
-    var energyCards = talentCards.concat([masterRoot]);
-
-    // 完全牌＝導師家族中，有出現在天賦牌的號碼（family ∩ 天賦）。
-    //   例 2016：導師5 家族{5,14}，14 在天賦 → 完全 14。
-    var completeSet = {};
-    fam.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
-    var completeCards = Object.keys(completeSet).map(Number)
-      .sort(function (a, b) { return a - b; });
-
-    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，且不是完全牌。
-    var countMap = {};
-    talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
-    var prominentCards = Object.keys(countMap)
-      .map(Number)
-      .filter(function (n) { return countMap[n] >= 2 && !completeSet[n]; })
-      .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
-      .map(function (n) { return { num: n, count: countMap[n] }; });
-
-    // 家族關係：天賦牌 + 導師牌 觸及到的家族（陰影不算）。
-    var presenceSet = {};
-    talentCards.concat([masterRoot]).forEach(function (n) { presenceSet[n] = true; });
-    var familyGroups = [];
-    Object.keys(FAMILIES).forEach(function (fid) {
-      var members = FAMILIES[fid];
-      var present = members.filter(function (n) { return presenceSet[n]; });
-      if (present.length === 0) return;
-      familyGroups.push({
-        id: Number(fid),
-        members: members.slice(),
-        present: present,
-        missing: members.filter(function (n) { return !presenceSet[n]; }),
-        complete: present.length === members.length
-      });
-    });
-    familyGroups.sort(function (a, b) { return b.present.length - a.present.length || a.id - b.id; });
-
-    return {
-      birthday: { year: year, month: month, day: day },
-      targetYear: targetYear,
-      talentCards: talentCards,          // 天賦牌（1/1、12/31 為 7 張）
-      inner: [c1, c2, c3],               // 內在三張
-      outer: outer,                      // 外在三張（連號）
-      boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
-      master: masterRoot,                // 導師（單一數字 1~9）
-      masterCards: masterCards,          // [導師]
-      shadow: shadowOf(masterRoot, talentCards), // 陰影牌（家族中未出現在天賦、屬原型的號碼）
-      family: fam,                       // 家族牌群組
-      yearStrategy: yearStrategy(targetYear, month, day),
-      energyCards: energyCards,          // 計算能量所用的牌組（含導師）
-      energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
-      completeCards: completeCards,      // 完全牌（天賦∩導師）
-      prominentCards: prominentCards,    // 比較明顯（≥2 張，非完全牌）
-      familyGroups: familyGroups,        // 家族關係
-      elementOf: ELEMENT_OF
-    };
-  }
-
-  /* =============================================================
-   * 匯出
-   * ============================================================= */
-  var MMTCalc = {
-    analyze: analyze,
-    card1: card1,
-    card2: card2,
-    card3: card3,
-    outerCards: outerCards,
-    gridRaw: gridRaw,
-    masterInfo: masterInfo,
-    shadowOf: shadowOf,
-    family: family,
-    yearStrategy: yearStrategy,
-    energy: energy,
-    ELEMENT_OF: ELEMENT_OF,
-    setOuterMode: function (mode) { OUTER_MODE = mode; }
-  };
-
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MMTCalc;
-  } else {
-    global.MMTCalc = MMTCalc;
-  }
-})(typeof window !== 'undefined' ? window : this);
-
 /* ===== js/data.js ===== */
 /*
  * MMT 天賦原理 — 參照資料 (data.js)
@@ -846,7 +530,7 @@ body{
 
   /* 完全牌（完全人格）判讀說明 */
   var COMPLETE_META = {
-    intro: '完全牌＝導師所屬家族的號碼出現在天賦牌中（家族∩天賦），能量從潛意識到外顯完全打通，是最強、最外顯的存在狀態。',
+    intro: "完全牌＝導師與天賦出現同一個號碼（導師∩天賦），能量從潛意識到外顯完全打通，是最強、最外顯的存在狀態。",
     prominentNote: '同一號碼在天賦牌出現兩張以上，優勢會「比較明顯」，但這不是完全牌。',
     notes: [
       '完全設計遇到重大事件會跌落導師狀態，但通常都在完全天賦狀態。',
@@ -1626,7 +1310,6 @@ body{
 (function () {
   'use strict';
 
-  var C = window.MMTCalc;
   var D = window.MMTData;
 
   var ELEMENT_COLORS = { 風: '#6aa9d9', 火: '#e0715a', 水: '#4fb0a5', 土: '#d3a34e' };
@@ -1779,7 +1462,7 @@ body{
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.master + ' 的家族號碼都沒有出現在天賦牌中）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + (result.master != null ? result.master : '—') + ' 沒有同時出現在天賦牌中）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
@@ -1855,7 +1538,7 @@ body{
         '<div class="energy-row ' + levelClass + '" style="--c:' + ELEMENT_COLORS[e] + '">' +
           '<div class="energy-top">' +
             '<span class="energy-name">' + ELEMENT_EMOJI[e] + ' ' + e + '（' + info.pursue + '）</span>' +
-            '<span class="energy-pct">' + d.percent + '% · ' + d.count + ' 張 · <b>' + levelText + '</b></span>' +
+            '<span class="energy-pct">' + d.percent + '%' + (d.count != null ? ' · ' + d.count + ' 張' : '') + ' · <b>' + levelText + '</b></span>' +
           '</div>' +
           '<div class="energy-bar"><span style="width:' + Math.max(d.percent, 3) + '%"></span></div>' +
           (showDetail ?
@@ -1894,7 +1577,7 @@ body{
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
           shadowDetail +
-          '<p class="hint">陰影＝導師家族中「非導師、也沒有出現在天賦牌」且屬於十二原型（0、11–21）的號碼；10 不作陰影。家族成員若在天賦牌出現，則成為完全牌。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
+          '<p class="hint">陰影＝導師家族中「非導師」且屬於十二原型（0、11–21）的號碼（與天賦牌無關，就算出現在天賦仍是陰影）；10 不作陰影。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
@@ -1906,16 +1589,18 @@ body{
 
   function yearSection(result) {
     var ys = result.yearStrategy;
+    if (ys == null) return '';
     var ystr = (D.YEAR_STRATEGY && D.YEAR_STRATEGY[ys]) ? D.YEAR_STRATEGY[ys] : null;
     var t = D.TALENTS[ys];
+    var label = result.yearLabel ? esc(result.yearLabel) + ' ' : '';
     return '' +
       '<div class="year-box">' +
-        '<div class="year-head">' + result.targetYear + ' 年度策略號碼：<b>' + ys + '</b>' +
+        '<div class="year-head">' + label + '年度策略號碼：<b>' + ys + '</b>' +
           (ystr ? '　' + esc(ystr.title.replace(/（[^）]*）$/, '')) : (t ? '　' + t.name : '')) + '</div>' +
         '<div class="year-body">' +
           (ystr ? '<p class="year-narr">' + esc(ystr.text) + '</p>'
                 : (t ? '<p>今年可運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' : '')) +
-          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
+          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。</p>' +
         '</div>' +
       '</div>';
   }
@@ -1982,7 +1667,6 @@ body{
 
   // ============ 客戶版簡易報告（用於輸出 PDF）============
   function clientReportHTML(result) {
-    var b = result.birthday;
     var order = ['風', '火', '水', '土'];
     // 牌陣徽章
     var cardBadges = result.talentCards.map(function (n) {
@@ -2033,7 +1717,7 @@ body{
 
     return '<div id="client-report">' +
       '<div class="cr-head"><div class="cr-brand">✦ 天賦原理 · 個人天賦報告</div>' +
-        '<div class="cr-date">生日　' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + '</div></div>' +
+        '<div class="cr-date">' + esc(result.name || '個人天賦報告') + '</div></div>' +
       '<div class="cr-sec"><h2>你的天賦牌陣</h2><div class="cr-badges">' + cardBadges + '</div>' +
         '<div class="cr-master">導師牌 ' + result.masterCards.join('、') +
         (result.shadow.length ? '　·　陰影牌 ' + result.shadow.join('、') : '') + '</div>' + completeLine + '</div>' +
@@ -2049,33 +1733,29 @@ body{
     var topic = detectTopic(opts.question);
     var focusKeys = topic.focus;
     var out = $('#report');
-    var innerLabels = ['第一張', '第二張', '第三張'];
-    var outerLabels = ['第四張', '第五張', '第六張'];
 
-    var boundaryGroup = (result.boundaryCard != null)
-      ? '<div class="ov-group"><h5>天地交界（多一張天賦牌）</h5><div class="ov-row">' +
-          talentBadge(result.boundaryCard, '交界') +
-        '</div></div>'
-      : '';
+    // 天賦號碼徽章（依輸入順序；重複的標注張數）
+    var counts = {};
+    result.talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
+    var talentBadges = result.talentCards.map(function (n) {
+      return talentBadge(n, counts[n] > 1 ? '×' + counts[n] : '');
+    }).join('');
 
     var overviewBadges =
       '<div class="overview-cards">' +
-        '<div class="ov-group"><h5>內在三張（自身思維設計）</h5><div class="ov-row">' +
-          result.inner.map(function (n, i) { return talentBadge(n, innerLabels[i]); }).join('') +
+        '<div class="ov-group"><h5>天賦牌（' + result.talentCards.length + ' 張）</h5><div class="ov-row">' +
+          talentBadges +
         '</div></div>' +
-        '<div class="ov-group"><h5>外在三張（與世界的相處 · 連號）</h5><div class="ov-row">' +
-          result.outer.map(function (n, i) { return talentBadge(n, outerLabels[i]); }).join('') +
-        '</div></div>' +
-        boundaryGroup +
-        '<div class="ov-group"><h5>導師' + (result.masterCards.length > 1 ? '（雙導師）' : '') + ' / 陰影</h5><div class="ov-row">' +
-          result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('') +
+        '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
+          (result.masterCards.length
+            ? result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('')
+            : '<div class="badge" style="--c:#666"><span class="badge-label">導師</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
           (result.shadow.length
             ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
             : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
         '</div></div>' +
       '</div>';
 
-    var b = result.birthday;
     var focusBanner = '';
     if (topic.hasQuestion) {
       var q = esc(opts.question);
@@ -2084,17 +1764,23 @@ body{
         ? '<div class="focus-banner"><b>🔎 ' + q + '</b><span>未對應到特定主題，改顯示綜合重點 · 高亮欄位：' + names + '</span></div>'
         : '<div class="focus-banner"><b>🔎 ' + q + '</b><span>本次聚焦：' + esc(topic.label) + ' · 高亮欄位：' + names + '</span></div>';
     }
+    var title = result.name ? esc(result.name) + ' 的天賦設計' : '天賦設計解讀';
     var header =
       '<div class="report-header">' +
-        '<h2>' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + ' 的天賦設計</h2>' +
-        '<p>天賦牌：' + result.talentCards.join('、') + '</p>' +
+        '<h2>' + title + '</h2>' +
+        '<p>天賦牌：' + result.talentCards.join('、') +
+          '　·　導師 ' + (result.master != null ? result.master : '—') +
+          '　·　陰影 ' + (result.shadow.length ? result.shadow.join('、') : '無') + '</p>' +
       '</div>' + focusBanner;
 
-    // 內在＋外在六張的詳細解說
-    var detailCards = '';
-    result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i], focusKeys); });
-    result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i], focusKeys); });
-    if (result.boundaryCard != null) detailCards += talentCardDetail(result.boundaryCard, '天地交界牌', focusKeys);
+    // 每個不重複的天賦號碼詳細解說
+    var seen = {}, detailCards = '';
+    result.talentCards.forEach(function (n) {
+      if (seen[n]) return;
+      seen[n] = 1;
+      var label = counts[n] > 1 ? '天賦牌 · 出現 ' + counts[n] + ' 張（優勢加成）' : '天賦牌';
+      detailCards += talentCardDetail(n, label, focusKeys);
+    });
 
     var html =
       header +
@@ -2102,12 +1788,13 @@ body{
         '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
         '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
       '</div>' +
-      sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
-      sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '導師家族的號碼出現在天賦牌（附：比較明顯）', completeSection(result)) +
+      sectionCard('牌陣總覽', '天賦牌 + 導師 + 陰影', overviewBadges) +
+      sectionCard('四大能量', '>25% 為高能量，0% 為 0 能量', energySection(result.energy)) +
+      sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
-      sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
+      sectionCard('天賦牌 · 詳細解讀', '每張天賦牌的完整解讀（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
+      (result.yearStrategy != null ? sectionCard('年度策略', '當年度的心智策略（不分析事件結果）', yearSection(result)) : '') +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
       clientReportHTML(result);
 
@@ -2136,76 +1823,140 @@ body{
     out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function pad2(n) { n = Number(n); return (n < 10 ? '0' : '') + n; }
-
-  function daysInMonth(y, m) {
-    return new Date(y, m, 0).getDate();
-  }
-
-  function fillSelects() {
-    var ySel = $('#in-year'), mSel = $('#in-month'), dSel = $('#in-day'), tSel = $('#in-target');
-    var nowYear = 2026;
-    for (var y = nowYear; y >= 1920; y--) ySel.appendChild(new Option(y, y));
-    for (var m = 1; m <= 12; m++) mSel.appendChild(new Option(m + ' 月', m));
-    for (var d = 1; d <= 31; d++) dSel.appendChild(new Option(d + ' 日', d));
-    if (tSel) {
-      for (var t = nowYear + 2; t >= 2000; t--) tSel.appendChild(new Option(t + ' 年', t));
-      tSel.value = String(nowYear);
-    }
-    mSel.value = '1';
-    dSel.value = '1';
-  }
-
-  function clampDay() {
-    var y = Number($('#in-year').value), m = Number($('#in-month').value);
-    var dSel = $('#in-day');
-    if (!y || !m) return;
-    var max = daysInMonth(y, m);
-    var cur = Number(dSel.value);
-    Array.prototype.forEach.call(dSel.options, function (o) {
-      o.disabled = Number(o.value) > max;
-    });
-    if (cur > max) dSel.value = String(max);
-  }
-
   function currentLevel() {
     var r = document.querySelector('input[name="level"]:checked');
     return r ? r.value : 'concise';
   }
 
+  // ---- 由輸入值建立 result 物件（不做任何天賦盤計算，只解析數字）----
+  function parseNums(str) {
+    if (str == null) return [];
+    return String(str).split(/[^0-9]+/)
+      .filter(function (s) { return s !== ''; })
+      .map(Number)
+      .filter(function (n) { return n >= 0 && n <= 21; });
+  }
+
+  // 號碼 → 家族編號 的反查表
+  function numToFamily() {
+    var map = {};
+    Object.keys(D.FAMILIES).forEach(function (fid) {
+      (D.FAMILIES[fid].members || []).forEach(function (n) { map[n] = Number(fid); });
+    });
+    return map;
+  }
+
+  // 天賦牌觸及的家族群組
+  function buildFamilyGroups(talentCards) {
+    var n2f = numToFamily();
+    var touched = {};
+    talentCards.forEach(function (n) {
+      var fid = n2f[n];
+      if (fid == null) return;
+      if (!touched[fid]) touched[fid] = [];
+      if (touched[fid].indexOf(n) < 0) touched[fid].push(n);
+    });
+    return Object.keys(touched).map(function (fid) {
+      var members = D.FAMILIES[fid].members || [];
+      var present = touched[fid];
+      var missing = members.filter(function (n) { return present.indexOf(n) < 0; });
+      return {
+        id: Number(fid), members: members, present: present,
+        missing: missing, complete: missing.length === 0
+      };
+    }).sort(function (a, b) { return a.id - b.id; });
+  }
+
+  function buildResult() {
+    var name = ($('#in-name') ? $('#in-name').value : '').trim();
+    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
+    var masterArr = parseNums($('#in-master') ? $('#in-master').value : '');
+    var master = masterArr.length ? masterArr[0] : null;
+    var shadow = parseNums($('#in-shadow') ? $('#in-shadow').value : '');
+    var yearArr = parseNums($('#in-year-strategy') ? $('#in-year-strategy').value : '');
+    var yearStrategy = yearArr.length ? yearArr[0] : null;
+    var yearLabel = ($('#in-year-label') ? $('#in-year-label').value : '').trim();
+
+    // 四大能量：直接採用輸入的百分比；>25% 高、=0 零、其餘一般
+    function pct(id) { var v = Number($(id) ? $(id).value : 0); return isNaN(v) ? 0 : v; }
+    var energyInput = { 風: pct('#in-e-wind'), 火: pct('#in-e-fire'), 水: pct('#in-e-water'), 土: pct('#in-e-earth') };
+    var energy = {};
+    ['風', '火', '水', '土'].forEach(function (e) {
+      var p = energyInput[e];
+      energy[e] = { percent: p, count: null, level: p > 25 ? 'high' : (p === 0 ? 'zero' : 'normal') };
+    });
+
+    // 完全牌＝導師出現在天賦牌中（導師∩天賦）
+    var completeCards = (master != null && talentCards.indexOf(master) >= 0) ? [master] : [];
+    // 比較明顯：同號 ≥2 張（且非完全牌）
+    var counts = {};
+    talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
+    var prominentCards = Object.keys(counts)
+      .filter(function (k) { return counts[k] >= 2 && completeCards.indexOf(Number(k)) < 0; })
+      .map(function (k) { return { num: Number(k), count: counts[k] }; });
+
+    // 家族牌（導師所屬家族）
+    var family = (master != null && D.FAMILIES[master]) ? D.FAMILIES[master].members.slice() : [];
+
+    return {
+      name: name,
+      talentCards: talentCards,
+      master: master,
+      masterCards: master != null ? [master] : [],
+      shadow: shadow,
+      family: family,
+      energy: energy,
+      completeCards: completeCards,
+      prominentCards: prominentCards,
+      familyGroups: buildFamilyGroups(talentCards),
+      yearStrategy: yearStrategy,
+      yearLabel: yearLabel
+    };
+  }
+
   function onGenerate() {
-    var y = Number($('#in-year').value);
-    var m = Number($('#in-month').value);
-    var d = Number($('#in-day').value);
-    var t = $('#in-target') ? Number($('#in-target').value) : 2026;
-    if (!y || !m || !d) return;
-    if (d > daysInMonth(y, m)) { d = daysInMonth(y, m); $('#in-day').value = String(d); }
+    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
+    if (!talentCards.length) {
+      alert('請至少輸入一個天賦號碼（0~21，用逗號或空白分隔）。');
+      return;
+    }
+    var result = buildResult();
     var question = $('#in-question') ? $('#in-question').value : '';
-    var result = C.analyze(y, m, d, t);
     render(result, { question: question, level: currentLevel() });
     try {
-      localStorage.setItem('mmt:last', JSON.stringify({ y: y, m: m, d: d, t: t }));
+      localStorage.setItem('mmt:manual', JSON.stringify({
+        name: $('#in-name').value, talents: $('#in-talents').value,
+        master: $('#in-master').value, shadow: $('#in-shadow').value,
+        year: $('#in-year-strategy').value, yearLabel: $('#in-year-label').value,
+        e: [$('#in-e-wind').value, $('#in-e-fire').value, $('#in-e-water').value, $('#in-e-earth').value],
+        question: question
+      }));
     } catch (e) {}
   }
 
+  function setVal(id, v) { var n = $(id); if (n && v != null) n.value = v; }
+
   function restoreLast() {
     try {
-      var raw = localStorage.getItem('mmt:last');
+      var raw = localStorage.getItem('mmt:manual');
       if (!raw) return;
       var v = JSON.parse(raw);
-      if (v.y) $('#in-year').value = String(v.y);
-      if (v.m) $('#in-month').value = String(v.m);
-      clampDay();
-      if (v.d) $('#in-day').value = String(v.d);
-      if (v.t && $('#in-target')) $('#in-target').value = String(v.t);
+      setVal('#in-name', v.name);
+      setVal('#in-talents', v.talents);
+      setVal('#in-master', v.master);
+      setVal('#in-shadow', v.shadow);
+      setVal('#in-year-strategy', v.year);
+      setVal('#in-year-label', v.yearLabel);
+      if (v.e) {
+        setVal('#in-e-wind', v.e[0]); setVal('#in-e-fire', v.e[1]);
+        setVal('#in-e-water', v.e[2]); setVal('#in-e-earth', v.e[3]);
+      }
+      setVal('#in-question', v.question);
     } catch (e) {}
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    fillSelects();
     restoreLast();
-    $('#in-year').addEventListener('change', clampDay);
-    $('#in-month').addEventListener('change', clampDay);
     $('#btn-generate').addEventListener('click', onGenerate);
     // 顯示詳細度切換：若已有報表，即時重繪
     Array.prototype.forEach.call(document.querySelectorAll('input[name="level"]'), function (r) {
@@ -2213,9 +1964,11 @@ body{
         if ($('#report').classList.contains('has-report')) onGenerate();
       });
     });
-    // 問題欄按 Enter 直接生成
-    var q = $('#in-question');
-    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
+    // 各輸入欄按 Enter 直接生成
+    ['#in-talents', '#in-master', '#in-shadow', '#in-year-strategy', '#in-question'].forEach(function (sel) {
+      var n = $(sel);
+      if (n) n.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
+    });
   });
 })();
 

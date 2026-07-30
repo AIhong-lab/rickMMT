@@ -181,12 +181,12 @@
   // 十二個陰影原型：0 與 11~21。注意 10 不作陰影。
   var SHADOW_ARCHETYPES = { 0: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
 
-  // 陰影牌＝導師所屬家族中「不是導師、也沒有出現在天賦牌」且「屬於十二陰影原型」的號碼。
-  //   例 導師3 家族{3,12,21}，12、21 不在天賦 → 陰影 12、21。
-  //   若家族成員出現在天賦牌，則成為完全牌（不是陰影）。10 不作陰影。
-  function shadowOf(root, talentCards) {
+  // 陰影牌＝導師所屬家族中「不是導師」且「屬於十二陰影原型(0、11~21)」的號碼。
+  //   與天賦牌無關（就算該號碼也出現在天賦，仍是陰影）。10 不作陰影。
+  //   例 導師3 家族{3,12,21} → 陰影 12、21；導師4 家族{4,13,0} → 陰影 13、0。
+  function shadowOf(root) {
     return family(root).filter(function (n) {
-      return n !== root && talentCards.indexOf(n) < 0 && SHADOW_ARCHETYPES[n];
+      return n !== root && SHADOW_ARCHETYPES[n];
     });
   }
 
@@ -271,19 +271,16 @@
     // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張；天地交界為 8 張）。
     var energyCards = talentCards.concat([masterRoot]);
 
-    // 完全牌＝導師家族中，有出現在天賦牌的號碼（family ∩ 天賦）。
-    //   例 2016：導師5 家族{5,14}，14 在天賦 → 完全 14。
-    var completeSet = {};
-    fam.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
-    var completeCards = Object.keys(completeSet).map(Number)
-      .sort(function (a, b) { return a - b; });
+    // 完全牌＝導師與天賦出現同一個號碼（導師∩天賦）。
+    //   例 2000/1/1：導師 4，天賦有 4 → 完全 4。
+    var completeCards = (talentCards.indexOf(masterRoot) >= 0) ? [masterRoot] : [];
 
     // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，且不是完全牌。
     var countMap = {};
     talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
     var prominentCards = Object.keys(countMap)
       .map(Number)
-      .filter(function (n) { return countMap[n] >= 2 && !completeSet[n]; })
+      .filter(function (n) { return countMap[n] >= 2 && completeCards.indexOf(n) < 0; })
       .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
       .map(function (n) { return { num: n, count: countMap[n] }; });
 
@@ -314,7 +311,7 @@
       boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
       master: masterRoot,                // 導師（單一數字 1~9）
       masterCards: masterCards,          // [導師]
-      shadow: shadowOf(masterRoot, talentCards), // 陰影牌（家族中未出現在天賦、屬原型的號碼）
+      shadow: shadowOf(masterRoot),      // 陰影牌（家族−導師，屬原型；與天賦無關）
       family: fam,                       // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）

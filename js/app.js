@@ -4,7 +4,6 @@
 (function () {
   'use strict';
 
-  var C = window.MMTCalc;
   var D = window.MMTData;
 
   var ELEMENT_COLORS = { 風: '#6aa9d9', 火: '#e0715a', 水: '#4fb0a5', 土: '#d3a34e' };
@@ -157,7 +156,7 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.master + ' 的家族號碼都沒有出現在天賦牌中）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + (result.master != null ? result.master : '—') + ' 沒有同時出現在天賦牌中）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
@@ -233,7 +232,7 @@
         '<div class="energy-row ' + levelClass + '" style="--c:' + ELEMENT_COLORS[e] + '">' +
           '<div class="energy-top">' +
             '<span class="energy-name">' + ELEMENT_EMOJI[e] + ' ' + e + '（' + info.pursue + '）</span>' +
-            '<span class="energy-pct">' + d.percent + '% · ' + d.count + ' 張 · <b>' + levelText + '</b></span>' +
+            '<span class="energy-pct">' + d.percent + '%' + (d.count != null ? ' · ' + d.count + ' 張' : '') + ' · <b>' + levelText + '</b></span>' +
           '</div>' +
           '<div class="energy-bar"><span style="width:' + Math.max(d.percent, 3) + '%"></span></div>' +
           (showDetail ?
@@ -272,7 +271,7 @@
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
           shadowDetail +
-          '<p class="hint">陰影＝導師家族中「非導師、也沒有出現在天賦牌」且屬於十二原型（0、11–21）的號碼；10 不作陰影。家族成員若在天賦牌出現，則成為完全牌。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
+          '<p class="hint">陰影＝導師家族中「非導師」且屬於十二原型（0、11–21）的號碼（與天賦牌無關，就算出現在天賦仍是陰影）；10 不作陰影。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
@@ -284,16 +283,18 @@
 
   function yearSection(result) {
     var ys = result.yearStrategy;
+    if (ys == null) return '';
     var ystr = (D.YEAR_STRATEGY && D.YEAR_STRATEGY[ys]) ? D.YEAR_STRATEGY[ys] : null;
     var t = D.TALENTS[ys];
+    var label = result.yearLabel ? esc(result.yearLabel) + ' ' : '';
     return '' +
       '<div class="year-box">' +
-        '<div class="year-head">' + result.targetYear + ' 年度策略號碼：<b>' + ys + '</b>' +
+        '<div class="year-head">' + label + '年度策略號碼：<b>' + ys + '</b>' +
           (ystr ? '　' + esc(ystr.title.replace(/（[^）]*）$/, '')) : (t ? '　' + t.name : '')) + '</div>' +
         '<div class="year-body">' +
           (ystr ? '<p class="year-narr">' + esc(ystr.text) + '</p>'
                 : (t ? '<p>今年可運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' : '')) +
-          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
+          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。</p>' +
         '</div>' +
       '</div>';
   }
@@ -360,7 +361,6 @@
 
   // ============ 客戶版簡易報告（用於輸出 PDF）============
   function clientReportHTML(result) {
-    var b = result.birthday;
     var order = ['風', '火', '水', '土'];
     // 牌陣徽章
     var cardBadges = result.talentCards.map(function (n) {
@@ -411,7 +411,7 @@
 
     return '<div id="client-report">' +
       '<div class="cr-head"><div class="cr-brand">✦ 天賦原理 · 個人天賦報告</div>' +
-        '<div class="cr-date">生日　' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + '</div></div>' +
+        '<div class="cr-date">' + esc(result.name || '個人天賦報告') + '</div></div>' +
       '<div class="cr-sec"><h2>你的天賦牌陣</h2><div class="cr-badges">' + cardBadges + '</div>' +
         '<div class="cr-master">導師牌 ' + result.masterCards.join('、') +
         (result.shadow.length ? '　·　陰影牌 ' + result.shadow.join('、') : '') + '</div>' + completeLine + '</div>' +
@@ -427,33 +427,29 @@
     var topic = detectTopic(opts.question);
     var focusKeys = topic.focus;
     var out = $('#report');
-    var innerLabels = ['第一張', '第二張', '第三張'];
-    var outerLabels = ['第四張', '第五張', '第六張'];
 
-    var boundaryGroup = (result.boundaryCard != null)
-      ? '<div class="ov-group"><h5>天地交界（多一張天賦牌）</h5><div class="ov-row">' +
-          talentBadge(result.boundaryCard, '交界') +
-        '</div></div>'
-      : '';
+    // 天賦號碼徽章（依輸入順序；重複的標注張數）
+    var counts = {};
+    result.talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
+    var talentBadges = result.talentCards.map(function (n) {
+      return talentBadge(n, counts[n] > 1 ? '×' + counts[n] : '');
+    }).join('');
 
     var overviewBadges =
       '<div class="overview-cards">' +
-        '<div class="ov-group"><h5>內在三張（自身思維設計）</h5><div class="ov-row">' +
-          result.inner.map(function (n, i) { return talentBadge(n, innerLabels[i]); }).join('') +
+        '<div class="ov-group"><h5>天賦牌（' + result.talentCards.length + ' 張）</h5><div class="ov-row">' +
+          talentBadges +
         '</div></div>' +
-        '<div class="ov-group"><h5>外在三張（與世界的相處 · 連號）</h5><div class="ov-row">' +
-          result.outer.map(function (n, i) { return talentBadge(n, outerLabels[i]); }).join('') +
-        '</div></div>' +
-        boundaryGroup +
-        '<div class="ov-group"><h5>導師' + (result.masterCards.length > 1 ? '（雙導師）' : '') + ' / 陰影</h5><div class="ov-row">' +
-          result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('') +
+        '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
+          (result.masterCards.length
+            ? result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('')
+            : '<div class="badge" style="--c:#666"><span class="badge-label">導師</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
           (result.shadow.length
             ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
             : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
         '</div></div>' +
       '</div>';
 
-    var b = result.birthday;
     var focusBanner = '';
     if (topic.hasQuestion) {
       var q = esc(opts.question);
@@ -462,17 +458,23 @@
         ? '<div class="focus-banner"><b>🔎 ' + q + '</b><span>未對應到特定主題，改顯示綜合重點 · 高亮欄位：' + names + '</span></div>'
         : '<div class="focus-banner"><b>🔎 ' + q + '</b><span>本次聚焦：' + esc(topic.label) + ' · 高亮欄位：' + names + '</span></div>';
     }
+    var title = result.name ? esc(result.name) + ' 的天賦設計' : '天賦設計解讀';
     var header =
       '<div class="report-header">' +
-        '<h2>' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + ' 的天賦設計</h2>' +
-        '<p>天賦牌：' + result.talentCards.join('、') + '</p>' +
+        '<h2>' + title + '</h2>' +
+        '<p>天賦牌：' + result.talentCards.join('、') +
+          '　·　導師 ' + (result.master != null ? result.master : '—') +
+          '　·　陰影 ' + (result.shadow.length ? result.shadow.join('、') : '無') + '</p>' +
       '</div>' + focusBanner;
 
-    // 內在＋外在六張的詳細解說
-    var detailCards = '';
-    result.inner.forEach(function (n, i) { detailCards += talentCardDetail(n, '內在 · ' + innerLabels[i], focusKeys); });
-    result.outer.forEach(function (n, i) { detailCards += talentCardDetail(n, '外在 · ' + outerLabels[i], focusKeys); });
-    if (result.boundaryCard != null) detailCards += talentCardDetail(result.boundaryCard, '天地交界牌', focusKeys);
+    // 每個不重複的天賦號碼詳細解說
+    var seen = {}, detailCards = '';
+    result.talentCards.forEach(function (n) {
+      if (seen[n]) return;
+      seen[n] = 1;
+      var label = counts[n] > 1 ? '天賦牌 · 出現 ' + counts[n] + ' 張（優勢加成）' : '天賦牌';
+      detailCards += talentCardDetail(n, label, focusKeys);
+    });
 
     var html =
       header +
@@ -480,12 +482,13 @@
         '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
         '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
       '</div>' +
-      sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
-      sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '導師家族的號碼出現在天賦牌（附：比較明顯）', completeSection(result)) +
+      sectionCard('牌陣總覽', '天賦牌 + 導師 + 陰影', overviewBadges) +
+      sectionCard('四大能量', '>25% 為高能量，0% 為 0 能量', energySection(result.energy)) +
+      sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
-      sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
+      sectionCard('天賦牌 · 詳細解讀', '每張天賦牌的完整解讀（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
+      (result.yearStrategy != null ? sectionCard('年度策略', '當年度的心智策略（不分析事件結果）', yearSection(result)) : '') +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
       clientReportHTML(result);
 
@@ -514,76 +517,140 @@
     out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  function pad2(n) { n = Number(n); return (n < 10 ? '0' : '') + n; }
-
-  function daysInMonth(y, m) {
-    return new Date(y, m, 0).getDate();
-  }
-
-  function fillSelects() {
-    var ySel = $('#in-year'), mSel = $('#in-month'), dSel = $('#in-day'), tSel = $('#in-target');
-    var nowYear = 2026;
-    for (var y = nowYear; y >= 1920; y--) ySel.appendChild(new Option(y, y));
-    for (var m = 1; m <= 12; m++) mSel.appendChild(new Option(m + ' 月', m));
-    for (var d = 1; d <= 31; d++) dSel.appendChild(new Option(d + ' 日', d));
-    if (tSel) {
-      for (var t = nowYear + 2; t >= 2000; t--) tSel.appendChild(new Option(t + ' 年', t));
-      tSel.value = String(nowYear);
-    }
-    mSel.value = '1';
-    dSel.value = '1';
-  }
-
-  function clampDay() {
-    var y = Number($('#in-year').value), m = Number($('#in-month').value);
-    var dSel = $('#in-day');
-    if (!y || !m) return;
-    var max = daysInMonth(y, m);
-    var cur = Number(dSel.value);
-    Array.prototype.forEach.call(dSel.options, function (o) {
-      o.disabled = Number(o.value) > max;
-    });
-    if (cur > max) dSel.value = String(max);
-  }
-
   function currentLevel() {
     var r = document.querySelector('input[name="level"]:checked');
     return r ? r.value : 'concise';
   }
 
+  // ---- 由輸入值建立 result 物件（不做任何天賦盤計算，只解析數字）----
+  function parseNums(str) {
+    if (str == null) return [];
+    return String(str).split(/[^0-9]+/)
+      .filter(function (s) { return s !== ''; })
+      .map(Number)
+      .filter(function (n) { return n >= 0 && n <= 21; });
+  }
+
+  // 號碼 → 家族編號 的反查表
+  function numToFamily() {
+    var map = {};
+    Object.keys(D.FAMILIES).forEach(function (fid) {
+      (D.FAMILIES[fid].members || []).forEach(function (n) { map[n] = Number(fid); });
+    });
+    return map;
+  }
+
+  // 天賦牌觸及的家族群組
+  function buildFamilyGroups(talentCards) {
+    var n2f = numToFamily();
+    var touched = {};
+    talentCards.forEach(function (n) {
+      var fid = n2f[n];
+      if (fid == null) return;
+      if (!touched[fid]) touched[fid] = [];
+      if (touched[fid].indexOf(n) < 0) touched[fid].push(n);
+    });
+    return Object.keys(touched).map(function (fid) {
+      var members = D.FAMILIES[fid].members || [];
+      var present = touched[fid];
+      var missing = members.filter(function (n) { return present.indexOf(n) < 0; });
+      return {
+        id: Number(fid), members: members, present: present,
+        missing: missing, complete: missing.length === 0
+      };
+    }).sort(function (a, b) { return a.id - b.id; });
+  }
+
+  function buildResult() {
+    var name = ($('#in-name') ? $('#in-name').value : '').trim();
+    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
+    var masterArr = parseNums($('#in-master') ? $('#in-master').value : '');
+    var master = masterArr.length ? masterArr[0] : null;
+    var shadow = parseNums($('#in-shadow') ? $('#in-shadow').value : '');
+    var yearArr = parseNums($('#in-year-strategy') ? $('#in-year-strategy').value : '');
+    var yearStrategy = yearArr.length ? yearArr[0] : null;
+    var yearLabel = ($('#in-year-label') ? $('#in-year-label').value : '').trim();
+
+    // 四大能量：直接採用輸入的百分比；>25% 高、=0 零、其餘一般
+    function pct(id) { var v = Number($(id) ? $(id).value : 0); return isNaN(v) ? 0 : v; }
+    var energyInput = { 風: pct('#in-e-wind'), 火: pct('#in-e-fire'), 水: pct('#in-e-water'), 土: pct('#in-e-earth') };
+    var energy = {};
+    ['風', '火', '水', '土'].forEach(function (e) {
+      var p = energyInput[e];
+      energy[e] = { percent: p, count: null, level: p > 25 ? 'high' : (p === 0 ? 'zero' : 'normal') };
+    });
+
+    // 完全牌＝導師出現在天賦牌中（導師∩天賦）
+    var completeCards = (master != null && talentCards.indexOf(master) >= 0) ? [master] : [];
+    // 比較明顯：同號 ≥2 張（且非完全牌）
+    var counts = {};
+    talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
+    var prominentCards = Object.keys(counts)
+      .filter(function (k) { return counts[k] >= 2 && completeCards.indexOf(Number(k)) < 0; })
+      .map(function (k) { return { num: Number(k), count: counts[k] }; });
+
+    // 家族牌（導師所屬家族）
+    var family = (master != null && D.FAMILIES[master]) ? D.FAMILIES[master].members.slice() : [];
+
+    return {
+      name: name,
+      talentCards: talentCards,
+      master: master,
+      masterCards: master != null ? [master] : [],
+      shadow: shadow,
+      family: family,
+      energy: energy,
+      completeCards: completeCards,
+      prominentCards: prominentCards,
+      familyGroups: buildFamilyGroups(talentCards),
+      yearStrategy: yearStrategy,
+      yearLabel: yearLabel
+    };
+  }
+
   function onGenerate() {
-    var y = Number($('#in-year').value);
-    var m = Number($('#in-month').value);
-    var d = Number($('#in-day').value);
-    var t = $('#in-target') ? Number($('#in-target').value) : 2026;
-    if (!y || !m || !d) return;
-    if (d > daysInMonth(y, m)) { d = daysInMonth(y, m); $('#in-day').value = String(d); }
+    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
+    if (!talentCards.length) {
+      alert('請至少輸入一個天賦號碼（0~21，用逗號或空白分隔）。');
+      return;
+    }
+    var result = buildResult();
     var question = $('#in-question') ? $('#in-question').value : '';
-    var result = C.analyze(y, m, d, t);
     render(result, { question: question, level: currentLevel() });
     try {
-      localStorage.setItem('mmt:last', JSON.stringify({ y: y, m: m, d: d, t: t }));
+      localStorage.setItem('mmt:manual', JSON.stringify({
+        name: $('#in-name').value, talents: $('#in-talents').value,
+        master: $('#in-master').value, shadow: $('#in-shadow').value,
+        year: $('#in-year-strategy').value, yearLabel: $('#in-year-label').value,
+        e: [$('#in-e-wind').value, $('#in-e-fire').value, $('#in-e-water').value, $('#in-e-earth').value],
+        question: question
+      }));
     } catch (e) {}
   }
 
+  function setVal(id, v) { var n = $(id); if (n && v != null) n.value = v; }
+
   function restoreLast() {
     try {
-      var raw = localStorage.getItem('mmt:last');
+      var raw = localStorage.getItem('mmt:manual');
       if (!raw) return;
       var v = JSON.parse(raw);
-      if (v.y) $('#in-year').value = String(v.y);
-      if (v.m) $('#in-month').value = String(v.m);
-      clampDay();
-      if (v.d) $('#in-day').value = String(v.d);
-      if (v.t && $('#in-target')) $('#in-target').value = String(v.t);
+      setVal('#in-name', v.name);
+      setVal('#in-talents', v.talents);
+      setVal('#in-master', v.master);
+      setVal('#in-shadow', v.shadow);
+      setVal('#in-year-strategy', v.year);
+      setVal('#in-year-label', v.yearLabel);
+      if (v.e) {
+        setVal('#in-e-wind', v.e[0]); setVal('#in-e-fire', v.e[1]);
+        setVal('#in-e-water', v.e[2]); setVal('#in-e-earth', v.e[3]);
+      }
+      setVal('#in-question', v.question);
     } catch (e) {}
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    fillSelects();
     restoreLast();
-    $('#in-year').addEventListener('change', clampDay);
-    $('#in-month').addEventListener('change', clampDay);
     $('#btn-generate').addEventListener('click', onGenerate);
     // 顯示詳細度切換：若已有報表，即時重繪
     Array.prototype.forEach.call(document.querySelectorAll('input[name="level"]'), function (r) {
@@ -591,8 +658,10 @@
         if ($('#report').classList.contains('has-report')) onGenerate();
       });
     });
-    // 問題欄按 Enter 直接生成
-    var q = $('#in-question');
-    if (q) q.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
+    // 各輸入欄按 Enter 直接生成
+    ['#in-talents', '#in-master', '#in-shadow', '#in-year-strategy', '#in-question'].forEach(function (sel) {
+      var n = $(sel);
+      if (n) n.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
+    });
   });
 })();

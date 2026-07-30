@@ -23,22 +23,43 @@
 
   <main class="container">
     <section class="input-panel">
-      <h2>輸入你的西元生日</h2>
-      <p class="input-sub">系統會依 MMT 天賦原理，自動計算你的六張天賦牌、導師與陰影、四大能量與年度策略。</p>
-      <div class="form-grid">
-        <label class="field">
-          <span>出生年</span>
-          <select id="in-year"></select>
+      <h2>輸入你的天賦盤</h2>
+      <p class="input-sub">直接填入你已排好的天賦盤數字，系統只負責生成完整的敘述解讀，<b>不進行計算</b>。</p>
+      <label class="field field-q">
+        <span>稱呼／姓名（可留空）</span>
+        <input id="in-name" type="text" autocomplete="off" placeholder="例如：小明／客戶 A">
+      </label>
+      <label class="field field-q">
+        <span>天賦號碼（用逗號或空白分隔）</span>
+        <input id="in-talents" type="text" autocomplete="off" placeholder="例如：0, 4, 8, 9, 10, 11">
+      </label>
+      <div class="form-grid form-grid-3">
+        <label class="field field-t">
+          <span>導師</span>
+          <input id="in-master" type="text" autocomplete="off" placeholder="例如：3">
         </label>
-        <label class="field">
-          <span>月</span>
-          <select id="in-month"></select>
+        <label class="field field-t">
+          <span>陰影（可多張）</span>
+          <input id="in-shadow" type="text" autocomplete="off" placeholder="例如：12, 21">
         </label>
-        <label class="field">
-          <span>日</span>
-          <select id="in-day"></select>
+        <label class="field field-t">
+          <span>年度策略號碼（5–16）</span>
+          <input id="in-year-strategy" type="text" autocomplete="off" placeholder="例如：10">
         </label>
       </div>
+      <div class="energy-input">
+        <span class="energy-input-label">四大能量比例（%）</span>
+        <div class="energy-input-grid">
+          <label><span>🍃 風</span><input id="in-e-wind" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>🔥 火</span><input id="in-e-fire" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>💧 水</span><input id="in-e-water" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" min="0" max="100" placeholder="0"></label>
+        </div>
+      </div>
+      <label class="field field-q">
+        <span>年份標籤（可留空 · 顯示在年度策略）</span>
+        <input id="in-year-label" type="text" autocomplete="off" placeholder="例如：2026">
+      </label>
       <label class="field field-q">
         <span>想問的問題（可留空 · 會依主題聚焦顯示）</span>
         <input id="in-question" type="text" autocomplete="off"
@@ -49,7 +70,7 @@
         <label><input type="radio" name="level" value="concise" checked> 精簡</label>
         <label><input type="radio" name="level" value="full"> 完整</label>
       </div>
-      <button id="btn-generate" class="btn-generate">✦ 生成我的天賦盤</button>
+      <button id="btn-generate" class="btn-generate">✦ 生成天賦盤解讀</button>
     </section>
 
     <div id="report" class="report"></div>
@@ -60,7 +81,6 @@
     </footer>
   </main>
 
-  <script src="js/calc.js"></script>
   <script src="js/data.js"></script>
   <script src="js/talents.js"></script>
   <script src="js/v15.js"></script>
