@@ -321,15 +321,55 @@ body{
 
 /* 列印 / 存成 PDF */
 @media print{
-  :root{--text:#1a1a2a;--muted:#555}
-  body{background:#fff;color:#1a1a2a}
+  :root{--text:#1a1a2a;--muted:#3f3f46}
+  body{background:#fff;color:#1a1a2a;font-size:11.5pt;line-height:1.6}
   .bg-orbs,.site-header,.input-panel,.report-actions,.site-footer{display:none !important}
   .container{max-width:100%;padding:0}
-  .report-section{break-inside:avoid;box-shadow:none;border:1px solid #ddd;background:#fff}
-  .tcard,.fam-card,.ms-box,.energy-row,.cm-line{break-inside:avoid}
   .tcards{grid-template-columns:1fr 1fr}
-  .report-header h2,.section-head h3{color:#1a1a2a}
+
+  /* —— 省墨：拿掉色塊與陰影，統一淡框線 —— */
+  .report-section{break-inside:avoid;box-shadow:none !important;border:1px solid #cfcfcf;background:#fff;border-radius:8px}
+  .tcard,.fam-card,.ms-box,.energy-row,.cm-line,.year-box{break-inside:avoid;
+    background:#fff !important;box-shadow:none !important}
+  .tcard{border:1px solid #cfcfcf;border-left:4px solid var(--c)}
+  .ms-box,.fam-card,.cm-line,.year-box,.energy-row{border:1px solid #cfcfcf !important}
+  .ms-box.shadow{border-color:#c7a29a !important}
+  .energy-row.zero{border-style:dashed !important;opacity:1}
+  .tcard-sec.focus{background:transparent !important;padding:0 !important}
+  .tcard-sec.focus h5::after{content:'' !important}
+  .focus-banner{background:#f6f6f6 !important;border:1px solid #ddd !important;color:#222 !important}
+  .focus-banner span{color:#444 !important}
+  /* 徽章改白底、深色數字，避免整片色塊 */
+  .badge{background:#fff !important;border:1px solid #b9b9b9 !important}
+  .badge-num{color:#222 !important}
+  .badge-label,.badge-elem{color:#5a5a5a !important}
+  .energy-bar{background:#eaeaea !important}
+  .pts li::before{background:#6a6a6a !important}
   .tags li{background:#f2f2f5;border-color:#ddd}
+
+  /* —— 放大字級、加行距，更好讀 —— */
+  .report-header h2{font-size:19pt;color:#1a1a2a}
+  .report-header p{font-size:11.5pt}
+  .section-head h3{font-size:15.5pt;color:#1a1a2a}
+  .section-head span{font-size:10.5pt}
+  .tcard-num{font-size:27pt}
+  .tcard-title strong{font-size:14pt}
+  .tcard-kw,.tcard-tag,.tcard-role{font-size:10.5pt}
+  .tcard-narr{font-size:11.5pt;line-height:1.8;color:#1a1a2a}
+  .tcard-sec h5{font-size:11pt;color:#333}
+  .tcard-sec.adv h5{color:#2e7d4f !important;border-left-color:#2e7d4f !important}
+  .tcard-sec.shadow h5{color:#b23a20 !important;border-left-color:#b23a20 !important}
+  .tcard-sec>p,.pts li,.tcard-grid p,.tcard-grid .pts li,
+  .tcard-grid .pc-main,.tcard-grid .pc-desc{font-size:11pt !important;line-height:1.7 !important;color:#1a1a2a}
+  .tcard-sec.shadow .pts li{color:#8a2b1a !important}
+  .energy-name,.energy-pct{font-size:11.5pt !important}
+  .energy-detail,.energy-detail .et-traits,.energy-detail .et-task{font-size:11pt !important;line-height:1.7 !important;color:#222}
+  .ms-box h4,.year-head{font-size:13.5pt}
+  .ms-box p,.ms-arche,.ms-narr,.year-body p,.year-narr,
+  .cm-intro,.cm-line span,.fam-role,.fam-mission li,.fam-flow{font-size:11pt !important;line-height:1.7 !important;color:#1a1a2a}
+  .cm-line b,.year-head b,.ms-box h4{color:#7a5a12}
+  .hint{font-size:10pt !important;color:#555 !important}
+
   /* 列印時顯示完整內容 */
   .report.concise .tcard-sec.extra{display:block !important}
   .report.concise .tcard-cols.extra{display:grid !important}
@@ -347,44 +387,44 @@ body{
 }
 
 /* 客戶版版面（列印時） */
-#client-report{color:#1f2430;font-size:12.5px;line-height:1.6}
+#client-report{color:#1f2430;font-size:13.8px;line-height:1.7}
 .cr-head{display:flex;justify-content:space-between;align-items:flex-end;
   border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:14px}
 .cr-brand{font-size:19px;font-weight:800;color:#7a5a12;letter-spacing:1px}
-.cr-date{font-size:12px;color:#666}
-#client-report h2{font-size:14px;margin:13px 0 7px;color:#1f2430;
+.cr-date{font-size:13px;color:#555}
+#client-report h2{font-size:15.5px;margin:15px 0 8px;color:#1f2430;
   border-left:5px solid var(--gold);padding-left:9px}
 #client-report>*:last-child{margin-bottom:0}
 .cr-sec{break-inside:avoid}
 .cr-badges{display:flex;flex-wrap:wrap;gap:8px}
-.crb{min-width:70px;text-align:center;border:1px solid color-mix(in srgb,var(--c) 55%,#ccc);
-  border-radius:9px;padding:7px 6px;background:color-mix(in srgb,var(--c) 12%,#fff)}
-.crb-n{display:block;font-size:22px;font-weight:800;color:color-mix(in srgb,var(--c) 75%,#000)}
-.crb-name{display:block;font-size:12px;color:#333}
-.crb-e{display:block;font-size:10px;color:#777}
-.cr-master{margin-top:8px;font-size:12px;color:#555}
-.cr-complete{margin-top:6px;font-size:12.5px;color:#7a5a12;font-weight:600}
-.cre-row{display:flex;align-items:center;gap:8px;margin:5px 0}
-.cre-name{width:120px;font-size:12px}
+.crb{min-width:74px;text-align:center;border:1px solid color-mix(in srgb,var(--c) 45%,#ccc);
+  border-radius:9px;padding:8px 6px;background:#fff}
+.crb-n{display:block;font-size:24px;font-weight:800;color:color-mix(in srgb,var(--c) 78%,#000)}
+.crb-name{display:block;font-size:13px;color:#222}
+.crb-e{display:block;font-size:10.5px;color:#666}
+.cr-master{margin-top:9px;font-size:13px;color:#444}
+.cr-complete{margin-top:6px;font-size:13.5px;color:#7a5a12;font-weight:600}
+.cre-row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.cre-name{width:128px;font-size:13px}
 .cre-bar{flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden}
 .cre-bar i{display:block;height:100%;background:var(--c)}
-.cre-pct{width:96px;text-align:right;font-size:11.5px;color:#555}
-.cr-enote{margin:8px 0 0;font-size:12px;color:#444;background:#faf6ec;
-  border:1px solid #eadfc0;border-radius:8px;padding:8px 10px}
+.cre-pct{width:100px;text-align:right;font-size:12.5px;color:#444}
+.cr-enote{margin:9px 0 0;font-size:13px;color:#333;background:#faf7ee;
+  border:1px solid #e7dcbd;border-radius:8px;padding:9px 11px;line-height:1.65}
 /* 核心天賦：兩欄、緊湊，只列重點 */
-.cr-talents{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.crt{break-inside:avoid;border:1px solid #e5e5e5;border-left:4px solid var(--c);
-  border-radius:8px;padding:8px 11px;background:#fff}
-.crt-h{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
-.crt-n{font-size:19px;font-weight:800;color:var(--c);min-width:24px;text-align:center}
-.crt-t{flex:1;font-size:13px}
-.crt-t i{font-style:normal;font-size:10px;color:#888;margin-left:5px}
-.crt-adv{margin:0;padding-left:15px}
-.crt-adv li{font-size:11px;line-height:1.5;margin:1px 0;color:#333}
-.crt-dir{margin:4px 0 0;font-size:10.5px;color:#666}
+.cr-talents{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.crt{break-inside:avoid;border:1px solid #e0e0e0;border-left:4px solid var(--c);
+  border-radius:8px;padding:9px 12px;background:#fff}
+.crt-h{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.crt-n{font-size:20px;font-weight:800;color:color-mix(in srgb,var(--c) 78%,#000);min-width:24px;text-align:center}
+.crt-t{flex:1;font-size:14px}
+.crt-t i{font-style:normal;font-size:11px;color:#777;margin-left:5px}
+.crt-adv{margin:0;padding-left:16px}
+.crt-adv li{font-size:12.5px;line-height:1.6;margin:2px 0;color:#2a2a2a}
+.crt-dir{margin:5px 0 0;font-size:12px;color:#555}
 .crt-dir b{color:#8a6d1f}
-.cr-foot{margin-top:12px;padding-top:7px;border-top:1px solid #ddd;
-  font-size:10px;color:#999;text-align:center}
+.cr-foot{margin-top:13px;padding-top:8px;border-top:1px solid #ddd;
+  font-size:11px;color:#888;text-align:center}
 
 </style>
 </head>
