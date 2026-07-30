@@ -146,12 +146,6 @@
    * 4. 導師牌 / 陰影牌 / 家族牌
    * ============================================================= */
 
-  // 導師牌 = 生日所有數字相加，再反覆相加到個位數 (1~9)。
-  function master(year, month, day) {
-    var all = String(year) + pad2(month) + pad2(day);
-    return digitRoot(sumDigits(all));
-  }
-
   // 家族牌：同「數字根」的家族群組（22 = 0 歸在家族 4）。
   var FAMILIES = {
     1: [1, 10, 19],
@@ -169,12 +163,28 @@
     return (FAMILIES[masterNum] || []).slice();
   }
 
-  // 陰影牌 = 導師所屬家族中「沒有出現在天賦牌」的號碼（導師本身除外）。
-  //   例：導師 6 → 家族 {6,15}，15 不在天賦 → 陰影 15。
-  //   可能有 0~2 張；若家族成員都已出現，則沒有陰影。
-  function shadowOf(masterNum, talentCards) {
-    return family(masterNum).filter(function (n) {
-      return n !== masterNum && talentCards.indexOf(n) < 0;
+  // 導師牌（可能雙導師 / 三導師）
+  // -------------------------------------------------------------
+  // 生命靈數 R：所有數字相加 S。若 S<=22 則 R=S（保留兩位數）；S>22 則化到個位數。
+  //   R 若落在 10~22，就會有多張導師（家族中 <= R 的成員）。
+  //   例：R=10 → {1,10}；R=19 → {1,10,19}；R=22 → {4,13,0}。
+  //   此時第二張天賦牌 = R，故必定形成完全牌（天賦∩導師）。
+  function masterInfo(year, month, day) {
+    var all = String(year) + pad2(month) + pad2(day);
+    var S = sumDigits(all);
+    var R = (S <= 22) ? S : digitRoot(S);   // 生命靈數（1~22）
+    var root = digitRoot(R);                 // 主導師（單一數字 1~9）
+    var raw = (FAMILIES[root] || [root]).map(function (v) { return v === 0 ? 22 : v; });
+    var cards = raw.filter(function (v) { return v <= R; })
+                   .map(function (v) { return v === 22 ? 0 : v; });
+    return { lifeNumber: R, root: root, cards: cards };
+  }
+
+  // 陰影牌 = 導師所屬家族中「不是導師牌、也沒有出現在天賦牌」的號碼。
+  //   例：導師 6 → 家族 {6,15}，15 不在天賦 → 陰影 15。可能 0~2 張。
+  function shadowOf(root, masterCards, talentCards) {
+    return family(root).filter(function (n) {
+      return masterCards.indexOf(n) < 0 && talentCards.indexOf(n) < 0;
     });
   }
 
@@ -251,14 +261,15 @@
     else if (month === 12 && day === 31) boundaryCard = 1;
     if (boundaryCard !== null) talentCards.push(boundaryCard);
 
-    var m = master(year, month, day);
+    var mi = masterInfo(year, month, day);
+    var masterRoot = mi.root;          // 主導師（單一數字）
+    var masterCards = mi.cards;        // 導師牌（1~3 張，雙導師/三導師）
 
-    // 四大能量分母 = 天賦牌 + 導師牌，已依實際排盤校準。
-    var energyCards = talentCards.concat([m]);
+    // 四大能量分母 = 所有天賦牌 + 導師牌。
+    var energyCards = talentCards.concat(masterCards);
 
-    // 完全牌：同一號碼「天賦與導師重疊」（導師號同時出現在天賦牌）。
-    var completeCards = [];
-    if (talentCards.indexOf(m) >= 0) completeCards.push(m);
+    // 完全牌：天賦與導師重疊的號碼（雙導師時必定存在）。
+    var completeCards = masterCards.filter(function (n) { return talentCards.indexOf(n) >= 0; });
 
     // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，優勢較明顯。
     var countMap = {};
@@ -271,7 +282,7 @@
 
     // 家族關係：天賦牌 + 導師牌 觸及到的家族（陰影不算）。
     var presenceSet = {};
-    talentCards.concat([m]).forEach(function (n) { presenceSet[n] = true; });
+    talentCards.concat(masterCards).forEach(function (n) { presenceSet[n] = true; });
     var familyGroups = [];
     Object.keys(FAMILIES).forEach(function (fid) {
       var members = FAMILIES[fid];
@@ -294,9 +305,11 @@
       inner: [c1, c2, c3],               // 內在三張
       outer: outer,                      // 外在三張（連號）
       boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
-      master: m,                         // 導師牌 (1~9)
-      shadow: shadowOf(m, talentCards),  // 陰影牌（家族中未出現的號碼，0~2 張）
-      family: family(m),                 // 家族牌群組
+      master: masterRoot,                // 主導師（單一數字 1~9，用於原型/情節）
+      masterCards: masterCards,          // 導師牌（1~3 張，雙導師/三導師）
+      lifeNumber: mi.lifeNumber,         // 生命靈數（1~22）
+      shadow: shadowOf(masterRoot, masterCards, talentCards), // 陰影牌（0~2 張）
+      family: family(masterRoot),        // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
       energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）
@@ -317,7 +330,7 @@
     card3: card3,
     outerCards: outerCards,
     gridRaw: gridRaw,
-    master: master,
+    masterInfo: masterInfo,
     shadowOf: shadowOf,
     family: family,
     yearStrategy: yearStrategy,

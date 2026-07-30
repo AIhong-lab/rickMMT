@@ -155,7 +155,7 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint">此盤天賦與導師未重疊，<b>沒有完全牌</b>（導師 ' + result.master + ' 未出現在天賦牌中）。</p>';
+      body += '<p class="hint">此盤天賦與導師未重疊，<b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
@@ -249,6 +249,8 @@
     var shadow = result.shadow; // 陣列
     var relatedComplex = D.COMPLEXES[m] || '';
     var famBadges = result.family.map(function (n) { return talentBadge(n); }).join('');
+    var masterNums = result.masterCards.join('、');
+    var isMulti = result.masterCards.length > 1;
     var shadowNums = shadow.length ? shadow.join('、') : '無';
     var shadowDetail = shadow.map(function (n) {
       var st = D.TALENTS[n];
@@ -258,12 +260,13 @@
     return '' +
       '<div class="ms-grid">' +
         '<div class="ms-box">' +
-          '<h4>導師牌 ' + m + '</h4>' +
-          '<p class="ms-arche">原型：<b>' + (arc.archetype || '—') + '</b></p>' +
+          '<h4>導師牌 ' + masterNums + (isMulti ? '（雙導師）' : '') + '</h4>' +
+          '<p class="ms-arche">原型：<b>' + (arc.archetype || '—') + '</b>（主導師 ' + m + '）</p>' +
           '<p>' + (arc.tend || '') + '</p>' +
-          '<p class="ms-pursue">核心追求：' + (arc.pursue || '—') + '</p>' +
+          '<p class="ms-pursue">核心追求：' + (arc.pursue || '—') + '　·　生命靈數：' + result.lifeNumber + '</p>' +
           (relatedComplex ? '<p class="ms-complex">情節 · ' + relatedComplex + '</p>' : '') +
-          '<p class="hint">導師牌＝挖掘藏在潛意識的天賦（約 30~50% 的天賦能量），可靠刻意練習補足。</p>' +
+          (isMulti ? '<p class="hint">生命靈數落在 10~22，出現多張導師牌；其中與天賦重疊者即為完全牌。</p>'
+                   : '<p class="hint">導師牌＝挖掘藏在潛意識的天賦（約 30~50% 的天賦能量），可靠刻意練習補足。</p>') +
         '</div>' +
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
@@ -376,8 +379,8 @@
           result.outer.map(function (n, i) { return talentBadge(n, outerLabels[i]); }).join('') +
         '</div></div>' +
         boundaryGroup +
-        '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
-          talentBadge(result.master, '導師') +
+        '<div class="ov-group"><h5>導師' + (result.masterCards.length > 1 ? '（雙導師）' : '') + ' / 陰影</h5><div class="ov-row">' +
+          result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('') +
           (result.shadow.length
             ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
             : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
