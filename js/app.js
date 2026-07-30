@@ -615,15 +615,13 @@
       return;
     }
     var result = buildResult();
-    var question = $('#in-question') ? $('#in-question').value : '';
-    render(result, { question: question, level: currentLevel() });
+    render(result, { level: currentLevel() });
     try {
       localStorage.setItem('mmt:manual', JSON.stringify({
         name: $('#in-name').value, talents: $('#in-talents').value,
         master: $('#in-master').value, shadow: $('#in-shadow').value,
         year: $('#in-year-strategy').value, yearLabel: $('#in-year-label').value,
-        e: [$('#in-e-wind').value, $('#in-e-fire').value, $('#in-e-water').value, $('#in-e-earth').value],
-        question: question
+        e: [$('#in-e-wind').value, $('#in-e-fire').value, $('#in-e-water').value, $('#in-e-earth').value]
       }));
     } catch (e) {}
   }
@@ -645,7 +643,6 @@
         setVal('#in-e-wind', v.e[0]); setVal('#in-e-fire', v.e[1]);
         setVal('#in-e-water', v.e[2]); setVal('#in-e-earth', v.e[3]);
       }
-      setVal('#in-question', v.question);
     } catch (e) {}
   }
 
@@ -659,7 +656,7 @@
       });
     });
     // 各輸入欄按 Enter 直接生成
-    ['#in-talents', '#in-master', '#in-shadow', '#in-year-strategy', '#in-question'].forEach(function (sel) {
+    ['#in-talents', '#in-master', '#in-shadow', '#in-year-strategy', '#in-year-label'].forEach(function (sel) {
       var n = $(sel);
       if (n) n.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
     });
