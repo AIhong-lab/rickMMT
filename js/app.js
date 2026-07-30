@@ -155,15 +155,17 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint">此盤天賦與導師未重疊，<b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中，且天賦牌沒有大於 14 的號碼）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
       }).join('') + '</div>';
+      var mc = result.masterCards || [];
       body += cc.map(function (n) {
         var t = D.TALENTS[n];
         if (!t) return '';
-        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（天賦＝導師）</b>' +
+        var reason = mc.indexOf(n) >= 0 ? '天賦＝導師' : '高階號碼 >14';
+        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（' + reason + '）</b>' +
           (t.career ? '<span>' + esc(formatPoints(t.career).join('、')) + '</span>' : '') + '</div>';
       }).join('');
     }
@@ -413,7 +415,7 @@
       '<div class="report-actions"><button id="btn-print" class="btn-print">🖨️ 列印 / 存成 PDF</button></div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '天賦與導師重疊的號碼（附：比較明顯的號碼）', completeSection(result)) +
+      sectionCard('完全牌', '導師∩天賦，或天賦中 >14 的高階號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +

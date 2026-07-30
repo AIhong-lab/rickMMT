@@ -268,15 +268,22 @@
     // 四大能量分母 = 所有天賦牌 + 導師牌。
     var energyCards = talentCards.concat(masterCards);
 
-    // 完全牌：天賦與導師重疊的號碼（雙導師時必定存在）。
-    var completeCards = masterCards.filter(function (n) { return talentCards.indexOf(n) >= 0; });
+    // 完全牌：
+    //   (1) 導師與天賦重疊的號碼（導師∩天賦；雙導師時必定存在），或
+    //   (2) 天賦牌中「大於 14」的高階號碼（15~22，其中 0 = 22）——必為完全牌。
+    var rawVal = function (n) { return n === 0 ? 22 : n; };
+    var completeSet = {};
+    masterCards.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
+    talentCards.forEach(function (n) { if (rawVal(n) > 14) completeSet[n] = true; });
+    var completeCards = Object.keys(completeSet).map(Number)
+      .sort(function (a, b) { return a - b; });
 
-    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，優勢較明顯。
+    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，且不是完全牌。
     var countMap = {};
     talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
     var prominentCards = Object.keys(countMap)
       .map(Number)
-      .filter(function (n) { return countMap[n] >= 2; })
+      .filter(function (n) { return countMap[n] >= 2 && !completeSet[n]; })
       .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
       .map(function (n) { return { num: n, count: countMap[n] }; });
 

@@ -638,15 +638,22 @@ body{
     // 四大能量分母 = 所有天賦牌 + 導師牌。
     var energyCards = talentCards.concat(masterCards);
 
-    // 完全牌：天賦與導師重疊的號碼（雙導師時必定存在）。
-    var completeCards = masterCards.filter(function (n) { return talentCards.indexOf(n) >= 0; });
+    // 完全牌：
+    //   (1) 導師與天賦重疊的號碼（導師∩天賦；雙導師時必定存在），或
+    //   (2) 天賦牌中「大於 14」的高階號碼（15~22，其中 0 = 22）——必為完全牌。
+    var rawVal = function (n) { return n === 0 ? 22 : n; };
+    var completeSet = {};
+    masterCards.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
+    talentCards.forEach(function (n) { if (rawVal(n) > 14) completeSet[n] = true; });
+    var completeCards = Object.keys(completeSet).map(Number)
+      .sort(function (a, b) { return a - b; });
 
-    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，優勢較明顯。
+    // 比較明顯（非完全牌）：同號在天賦牌出現兩張以上，且不是完全牌。
     var countMap = {};
     talentCards.forEach(function (n) { countMap[n] = (countMap[n] || 0) + 1; });
     var prominentCards = Object.keys(countMap)
       .map(Number)
-      .filter(function (n) { return countMap[n] >= 2; })
+      .filter(function (n) { return countMap[n] >= 2 && !completeSet[n]; })
       .sort(function (a, b) { return countMap[b] - countMap[a] || a - b; })
       .map(function (n) { return { num: n, count: countMap[n] }; });
 
@@ -785,8 +792,8 @@ body{
 
   /* 完全牌（完全人格）判讀說明 */
   var COMPLETE_META = {
-    intro: '完全牌＝同一號碼「天賦與導師重疊」（導師號同時出現在天賦牌），能量可完全發揮、明確變現。',
-    prominentNote: '同一號碼在天賦牌出現兩張以上，優勢會「比較明顯」，但這不是完全牌。',
+    intro: '完全牌＝①導師與天賦出現相同號碼（導師∩天賦），或②天賦牌中大於 14 的高階號碼（15~22，其中 0＝22）。能量可完全發揮、明確變現。',
+    prominentNote: '同一號碼在天賦牌出現兩張以上，優勢會「比較明顯」，但（若非完全牌）不算完全牌。',
     notes: [
       '完全設計遇到重大事件會跌落導師狀態，但通常都在完全天賦狀態。',
       '完全牌沒有用到的時候會很失落。',
@@ -1597,15 +1604,17 @@ body{
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint">此盤天賦與導師未重疊，<b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中，且天賦牌沒有大於 14 的號碼）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
       }).join('') + '</div>';
+      var mc = result.masterCards || [];
       body += cc.map(function (n) {
         var t = D.TALENTS[n];
         if (!t) return '';
-        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（天賦＝導師）</b>' +
+        var reason = mc.indexOf(n) >= 0 ? '天賦＝導師' : '高階號碼 >14';
+        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（' + reason + '）</b>' +
           (t.career ? '<span>' + esc(formatPoints(t.career).join('、')) + '</span>' : '') + '</div>';
       }).join('');
     }
@@ -1855,7 +1864,7 @@ body{
       '<div class="report-actions"><button id="btn-print" class="btn-print">🖨️ 列印 / 存成 PDF</button></div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '天賦與導師重疊的號碼（附：比較明顯的號碼）', completeSection(result)) +
+      sectionCard('完全牌', '導師∩天賦，或天賦中 >14 的高階號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
