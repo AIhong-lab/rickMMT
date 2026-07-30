@@ -169,32 +169,24 @@
   //   R 若落在 10~22，就會有多張導師（家族中 <= R 的成員）。
   //   例：R=10 → {1,10}；R=19 → {1,10,19}；R=22 → {4,13,0}。
   //   此時第二張天賦牌 = R，故必定形成完全牌（天賦∩導師）。
+  // 導師牌（單一）＝生日所有數字相加，反覆相加到個位數 (1~9)。
+  //   例 1983/5/22：1+9+8+3+5+2+2 = 30 → 3；2016/11/12：…=14 → 5；1984/9/20：…=33 → 6。
+  //   已與官方排盤工具對照：導師只有一張。
   function masterInfo(year, month, day) {
-    // 生命靈數 = 生日所有數字相加；但「日」為大師數 11 或 22 時整數計入（不拆）。
-    //   反覆數字相加到 <= 22。落在 10~22 為雙／三導師：家族中 <= 生命靈數的成員。
-    //   例 2016/11/12：2+0+1+6 + (1+1) + (1+2) = 14 → 導師 {5,14}。
-    //   例 1983/5/22：(1+9+8+3) + 5 + 22 = 48 → 4+8 = 12 → 導師 {3,12}。
-    //   例 1984/9/20：(1+9+8+4) + 9 + (2+0) = 33 → 6 → 導師 {6}。
-    var da = (Number(day) === 11 || Number(day) === 22) ? Number(day) : sumDigits(day);
-    var S = sumDigits(year) + sumDigits(month) + da;
-    var R = S;
-    while (R > 22) R = sumDigits(R);         // 生命靈數（1~22）
-    var root = digitRoot(R);                 // 主導師（單一數字 1~9）
-    var raw = (FAMILIES[root] || [root]).map(function (v) { return v === 0 ? 22 : v; });
-    var cards = raw.filter(function (v) { return v <= R; })
-                   .map(function (v) { return v === 22 ? 0 : v; });
-    return { lifeNumber: R, root: root, cards: cards };
+    var all = String(year) + pad2(month) + pad2(day);
+    var root = digitRoot(sumDigits(all));
+    return { root: root, cards: [root] };
   }
 
-  // 十二個陰影原型（敘述版 v1.5 定稿）：0 與 11~21。注意 10 不作陰影。
+  // 十二個陰影原型：0 與 11~21。注意 10 不作陰影。
   var SHADOW_ARCHETYPES = { 0: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
 
-  // 陰影牌（v1.5）＝導師家族中「不是導師牌」且「屬於十二陰影原型」的號碼。
-  //   與天賦牌無關；靈數 14 以上家族到齊、無陰影。
-  //   例：導師 6 → 家族 {6,15}，15 非導師且屬原型 → 陰影 15；導師 1 → 家族 {1,10,19}，10 不作陰影 → 只有 19。
-  function shadowOf(root, masterCards) {
+  // 陰影牌＝導師所屬家族中「不是導師、也沒有出現在天賦牌」且「屬於十二陰影原型」的號碼。
+  //   例 導師3 家族{3,12,21}，12、21 不在天賦 → 陰影 12、21。
+  //   若家族成員出現在天賦牌，則成為完全牌（不是陰影）。10 不作陰影。
+  function shadowOf(root, talentCards) {
     return family(root).filter(function (n) {
-      return masterCards.indexOf(n) < 0 && SHADOW_ARCHETYPES[n];
+      return n !== root && talentCards.indexOf(n) < 0 && SHADOW_ARCHETYPES[n];
     });
   }
 
@@ -272,16 +264,17 @@
     if (boundaryCard !== null) talentCards.push(boundaryCard);
 
     var mi = masterInfo(year, month, day);
-    var masterRoot = mi.root;          // 主導師（單一數字）
-    var masterCards = mi.cards;        // 導師牌（1~3 張，雙導師/三導師）
+    var masterRoot = mi.root;          // 導師（單一數字 1~9）
+    var masterCards = mi.cards;        // [導師]（保留陣列形式以相容顯示）
+    var fam = family(masterRoot);      // 導師所屬家族
 
-    // 四大能量分母 = 所有天賦牌 + 導師牌。
-    var energyCards = talentCards.concat(masterCards);
+    // 四大能量分母 = 六張天賦牌 + 導師牌（共 7 張；天地交界為 8 張）。
+    var energyCards = talentCards.concat([masterRoot]);
 
-    // 完全牌（敘述版 v1.5 定稿）＝導師與天賦出現同一個號碼（導師∩天賦）。
-    //   生命靈數 14 以上，拆出的導師必與天賦撞號，必定形成完全牌。
+    // 完全牌＝導師家族中，有出現在天賦牌的號碼（family ∩ 天賦）。
+    //   例 2016：導師5 家族{5,14}，14 在天賦 → 完全 14。
     var completeSet = {};
-    masterCards.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
+    fam.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
     var completeCards = Object.keys(completeSet).map(Number)
       .sort(function (a, b) { return a - b; });
 
@@ -296,7 +289,7 @@
 
     // 家族關係：天賦牌 + 導師牌 觸及到的家族（陰影不算）。
     var presenceSet = {};
-    talentCards.concat(masterCards).forEach(function (n) { presenceSet[n] = true; });
+    talentCards.concat([masterRoot]).forEach(function (n) { presenceSet[n] = true; });
     var familyGroups = [];
     Object.keys(FAMILIES).forEach(function (fid) {
       var members = FAMILIES[fid];
@@ -319,11 +312,10 @@
       inner: [c1, c2, c3],               // 內在三張
       outer: outer,                      // 外在三張（連號）
       boundaryCard: boundaryCard,        // 天地交界多的那張（1/1→13、12/31→1）
-      master: masterRoot,                // 主導師（單一數字 1~9，用於原型/情節）
-      masterCards: masterCards,          // 導師牌（1~3 張，雙導師/三導師）
-      lifeNumber: mi.lifeNumber,         // 生命靈數（1~22）
-      shadow: shadowOf(masterRoot, masterCards), // 陰影牌（依 v1.5 原型規則，0~2 張）
-      family: family(masterRoot),        // 家族牌群組
+      master: masterRoot,                // 導師（單一數字 1~9）
+      masterCards: masterCards,          // [導師]
+      shadow: shadowOf(masterRoot, talentCards), // 陰影牌（家族中未出現在天賦、屬原型的號碼）
+      family: fam,                       // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）
       energy: energy(energyCards),       // 四大能量（六張天賦牌 + 導師）

@@ -157,7 +157,7 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中）。生命靈數 14 以上必有完全牌。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.master + ' 的家族號碼都沒有出現在天賦牌中）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
@@ -166,7 +166,7 @@
         var t = D.TALENTS[n];
         if (!t) return '';
         var narr = (D.NARRATIVE && D.NARRATIVE[n]) ? formatPoints(D.NARRATIVE[n])[0] : (t.career ? formatPoints(t.career).join('、') : '');
-        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（導師＝天賦）</b>' +
+        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」</b>' +
           (narr ? '<span>' + esc(narr) + '</span>' : '') + '</div>';
       }).join('');
     }
@@ -252,8 +252,6 @@
     var shadow = result.shadow; // 陣列
     var relatedComplex = D.COMPLEXES[m] || '';
     var famBadges = result.family.map(function (n) { return talentBadge(n); }).join('');
-    var masterNums = result.masterCards.join('、');
-    var isMulti = result.masterCards.length > 1;
     var shadowNums = shadow.length ? shadow.join('、') : '無';
     var archOf = D.SHADOW_ARCH || {};
     var shadowDetail = shadow.map(function (n) {
@@ -267,16 +265,14 @@
     return '' +
       '<div class="ms-grid">' +
         '<div class="ms-box">' +
-          '<h4>導師牌 ' + masterNums + (isMulti ? '（雙導師）' : '') + '</h4>' +
-          '<p class="ms-pursue">主導師 ' + m + '（' + (arc.archetype || '') + '）　·　生命靈數：' + result.lifeNumber + '</p>' +
+          '<h4>導師牌 ' + m + '　' + (D.TALENTS[m] ? D.TALENTS[m].name : '') + '</h4>' +
           (mn ? '<p class="ms-arche"><b>' + esc(mn.title) + '</b></p><p class="ms-narr">' + esc(mn.text) + '</p>'
               : '<p class="hint">導師牌＝隱藏在潛意識、只發揮 25~40% 的天賦，可靠刻意練習長成天賦牌。</p>') +
-          (isMulti ? '<p class="hint">生命靈數 10~22，出現多張導師；其中與天賦重疊者即為完全牌。</p>' : '') +
         '</div>' +
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
           shadowDetail +
-          '<p class="hint">陰影＝導師家族中未成為導師、且屬於十二陰影原型（0、11–21）的號碼；10 不作陰影，靈數 14 以上無陰影。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
+          '<p class="hint">陰影＝導師家族中「非導師、也沒有出現在天賦牌」且屬於十二原型（0、11–21）的號碼；10 不作陰影。家族成員若在天賦牌出現，則成為完全牌。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
@@ -486,7 +482,7 @@
       '</div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
+      sectionCard('完全牌', '導師家族的號碼出現在天賦牌（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
