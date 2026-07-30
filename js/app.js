@@ -402,21 +402,14 @@
       var t = D.TALENTS[n]; if (!t) return '';
       var c = ELEMENT_COLORS[t.element];
       var isComp = result.completeCards.indexOf(n) >= 0;
-      var narr = (D.NARRATIVE && D.NARRATIVE[n]) ? D.NARRATIVE[n] : '';
-      var body;
-      if (narr) {
-        // 去掉敘述開頭「N號・名稱（代表詞）｜占星×神話」抬頭，避免與卡片標題重複
-        var txt = narr.replace(/^[0-9]+號[^　]*　/, '').replace(/^[0-9]+號[^｜]*｜[^　]*　?/, '');
-        body = '<p class="crt-narr">' + esc(txt) + '</p>';
-      } else {
-        var adv = formatPoints(t.advantage).slice(0, 6);
-        body = (adv.length ? '<div class="crt-s"><h5>天賦優勢</h5><ul>' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '');
-      }
+      var adv = formatPoints(t.advantage).slice(0, 4);   // 只取重點 4 項
+      var career = formatPoints(t.career).slice(0, 3).join('、');
       return '<div class="crt" style="--c:' + c + '">' +
         '<div class="crt-h"><span class="crt-n">' + n + '</span>' +
-        '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」</span>' +
-        '<span class="crt-e">' + ELEMENT_EMOJI[t.element] + t.element + '能量' + (isComp ? ' · ✦完全' : '') + '</span></div>' +
-        body +
+        '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」' +
+          '<i>' + ELEMENT_EMOJI[t.element] + t.element + (isComp ? ' · ✦完全' : '') + '</i></span></div>' +
+        (adv.length ? '<ul class="crt-adv">' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+        (career ? '<p class="crt-dir"><b>適合：</b>' + esc(career) + '</p>' : '') +
         '</div>';
     }).join('');
 
@@ -428,7 +421,7 @@
         (result.shadow.length ? '　·　陰影牌 ' + result.shadow.join('、') : '') + '</div>' + completeLine + '</div>' +
       '<div class="cr-sec"><h2>四大能量分佈</h2>' + energyBars +
         '<p class="cr-enote">' + energyNote + '</p></div>' +
-      '<div class="cr-sec"><h2>你的核心天賦</h2>' + talentBlocks + '</div>' +
+      '<div class="cr-sec"><h2>你的核心天賦</h2><div class="cr-talents">' + talentBlocks + '</div></div>' +
       '<div class="cr-foot">本報告依 MMT 天賦原理製作，作為自我覺察與潛能發展參考。</div>' +
       '</div>';
   }

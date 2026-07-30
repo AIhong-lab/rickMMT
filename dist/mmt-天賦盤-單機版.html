@@ -321,9 +321,11 @@ body{
   .tcard-expand{display:none !important}
 
   /* 客戶版模式：只印客戶報告 */
+  body.print-client #report{margin:0 !important}
   body.print-client #report > *{display:none !important}
   body.print-client #report > #client-report{display:block !important}
-  @page{margin:14mm}
+  body.print-client .container{padding:0 !important}
+  @page{margin:12mm}
 }
 
 /* 客戶版版面（列印時） */
@@ -332,8 +334,9 @@ body{
   border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:14px}
 .cr-brand{font-size:19px;font-weight:800;color:#7a5a12;letter-spacing:1px}
 .cr-date{font-size:12px;color:#666}
-#client-report h2{font-size:14px;margin:16px 0 8px;color:#1f2430;
+#client-report h2{font-size:14px;margin:13px 0 7px;color:#1f2430;
   border-left:5px solid var(--gold);padding-left:9px}
+#client-report>*:last-child{margin-bottom:0}
 .cr-sec{break-inside:avoid}
 .cr-badges{display:flex;flex-wrap:wrap;gap:8px}
 .crb{min-width:70px;text-align:center;border:1px solid color-mix(in srgb,var(--c) 55%,#ccc);
@@ -350,18 +353,19 @@ body{
 .cre-pct{width:96px;text-align:right;font-size:11.5px;color:#555}
 .cr-enote{margin:8px 0 0;font-size:12px;color:#444;background:#faf6ec;
   border:1px solid #eadfc0;border-radius:8px;padding:8px 10px}
+/* 核心天賦：兩欄、緊湊，只列重點 */
+.cr-talents{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .crt{break-inside:avoid;border:1px solid #e5e5e5;border-left:4px solid var(--c);
-  border-radius:8px;padding:9px 12px;margin:9px 0;background:#fff}
-.crt-h{display:flex;align-items:center;gap:9px;margin-bottom:5px}
-.crt-n{font-size:22px;font-weight:800;color:var(--c);min-width:30px;text-align:center}
-.crt-t{flex:1;font-size:13.5px}
-.crt-e{font-size:10.5px;color:#777;white-space:nowrap}
-.crt-s h5,.crt-c h5{margin:5px 0 3px;font-size:11px;color:#8a6d1f;letter-spacing:.5px}
-.crt-s ul{margin:0;padding-left:16px;columns:2;column-gap:18px}
-.crt-s li{font-size:11.5px;margin:1px 0}
-.crt-c p{margin:0;font-size:11.5px;color:#555}
-.crt-narr{margin:4px 0 0;font-size:11.8px;line-height:1.72;color:#333;text-align:justify}
-.cr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #ddd;
+  border-radius:8px;padding:8px 11px;background:#fff}
+.crt-h{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.crt-n{font-size:19px;font-weight:800;color:var(--c);min-width:24px;text-align:center}
+.crt-t{flex:1;font-size:13px}
+.crt-t i{font-style:normal;font-size:10px;color:#888;margin-left:5px}
+.crt-adv{margin:0;padding-left:15px}
+.crt-adv li{font-size:11px;line-height:1.5;margin:1px 0;color:#333}
+.crt-dir{margin:4px 0 0;font-size:10.5px;color:#666}
+.crt-dir b{color:#8a6d1f}
+.cr-foot{margin-top:12px;padding-top:7px;border-top:1px solid #ddd;
   font-size:10px;color:#999;text-align:center}
 
 </style>
@@ -2028,21 +2032,14 @@ body{
       var t = D.TALENTS[n]; if (!t) return '';
       var c = ELEMENT_COLORS[t.element];
       var isComp = result.completeCards.indexOf(n) >= 0;
-      var narr = (D.NARRATIVE && D.NARRATIVE[n]) ? D.NARRATIVE[n] : '';
-      var body;
-      if (narr) {
-        // 去掉敘述開頭「N號・名稱（代表詞）｜占星×神話」抬頭，避免與卡片標題重複
-        var txt = narr.replace(/^[0-9]+號[^　]*　/, '').replace(/^[0-9]+號[^｜]*｜[^　]*　?/, '');
-        body = '<p class="crt-narr">' + esc(txt) + '</p>';
-      } else {
-        var adv = formatPoints(t.advantage).slice(0, 6);
-        body = (adv.length ? '<div class="crt-s"><h5>天賦優勢</h5><ul>' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '');
-      }
+      var adv = formatPoints(t.advantage).slice(0, 4);   // 只取重點 4 項
+      var career = formatPoints(t.career).slice(0, 3).join('、');
       return '<div class="crt" style="--c:' + c + '">' +
         '<div class="crt-h"><span class="crt-n">' + n + '</span>' +
-        '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」</span>' +
-        '<span class="crt-e">' + ELEMENT_EMOJI[t.element] + t.element + '能量' + (isComp ? ' · ✦完全' : '') + '</span></div>' +
-        body +
+        '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」' +
+          '<i>' + ELEMENT_EMOJI[t.element] + t.element + (isComp ? ' · ✦完全' : '') + '</i></span></div>' +
+        (adv.length ? '<ul class="crt-adv">' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '') +
+        (career ? '<p class="crt-dir"><b>適合：</b>' + esc(career) + '</p>' : '') +
         '</div>';
     }).join('');
 
@@ -2054,7 +2051,7 @@ body{
         (result.shadow.length ? '　·　陰影牌 ' + result.shadow.join('、') : '') + '</div>' + completeLine + '</div>' +
       '<div class="cr-sec"><h2>四大能量分佈</h2>' + energyBars +
         '<p class="cr-enote">' + energyNote + '</p></div>' +
-      '<div class="cr-sec"><h2>你的核心天賦</h2>' + talentBlocks + '</div>' +
+      '<div class="cr-sec"><h2>你的核心天賦</h2><div class="cr-talents">' + talentBlocks + '</div></div>' +
       '<div class="cr-foot">本報告依 MMT 天賦原理製作，作為自我覺察與潛能發展參考。</div>' +
       '</div>';
   }
