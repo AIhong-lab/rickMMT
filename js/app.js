@@ -358,6 +358,70 @@
     return { label: labels.join('／'), focusNames: names.join('、'), focus: focus, hasQuestion: true };
   }
 
+  // ============ 客戶版簡易報告（用於輸出 PDF）============
+  function clientReportHTML(result) {
+    var b = result.birthday;
+    var order = ['風', '火', '水', '土'];
+    // 牌陣徽章
+    var cardBadges = result.talentCards.map(function (n) {
+      var t = D.TALENTS[n]; var c = ELEMENT_COLORS[t.element];
+      return '<div class="crb" style="--c:' + c + '">' +
+        '<span class="crb-n">' + n + '</span>' +
+        '<span class="crb-name">' + t.name + '</span>' +
+        '<span class="crb-e">' + ELEMENT_EMOJI[t.element] + t.element + '</span></div>';
+    }).join('');
+    // 能量條
+    var energyBars = order.map(function (e) {
+      var d = result.energy[e];
+      var lv = d.level === 'high' ? '高能量' : (d.level === 'zero' ? '0 能量' : '');
+      return '<div class="cre-row" style="--c:' + ELEMENT_COLORS[e] + '">' +
+        '<span class="cre-name">' + ELEMENT_EMOJI[e] + ' ' + e + '（' + D.ELEMENTS[e].pursue + '）</span>' +
+        '<span class="cre-bar"><i style="width:' + Math.max(d.percent, 3) + '%"></i></span>' +
+        '<span class="cre-pct">' + d.percent + '%' + (lv ? ' · ' + lv : '') + '</span></div>';
+    }).join('');
+    // 能量一句話
+    var hi = order.slice().sort(function (a, c) { return result.energy[c].percent - result.energy[a].percent; })[0];
+    var zeros = order.filter(function (e) { return result.energy[e].level === 'zero'; });
+    var energyNote = '你的主導能量是 <b>' + hi + '（' + D.ELEMENTS[hi].pursue + '）</b>：' +
+      D.ELEMENTS[hi].high.traits.slice(0, 4).join('、') + '。' +
+      (zeros.length ? '　' + zeros.join('、') + ' 能量較低，' + D.ELEMENTS[zeros[0]].zero.task : '');
+    // 完全牌
+    var completeLine = result.completeCards.length
+      ? '<div class="cr-complete">✦ 你的完全天賦：' + result.completeCards.map(function (n) {
+          var t = D.TALENTS[n]; return '<b>' + n + ' ' + t.name + '</b>';
+        }).join('、') + '　（能量可完全發揮）</div>'
+      : '';
+    // 每個「不重複」的天賦號碼
+    var seen = {}, distinct = [];
+    result.talentCards.forEach(function (n) { if (!seen[n]) { seen[n] = 1; distinct.push(n); } });
+    var talentBlocks = distinct.map(function (n) {
+      var t = D.TALENTS[n]; if (!t) return '';
+      var c = ELEMENT_COLORS[t.element];
+      var adv = formatPoints(t.advantage).slice(0, 6);
+      var career = formatPoints(t.career).slice(0, 5).join('、');
+      var isComp = result.completeCards.indexOf(n) >= 0;
+      return '<div class="crt" style="--c:' + c + '">' +
+        '<div class="crt-h"><span class="crt-n">' + n + '</span>' +
+        '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」</span>' +
+        '<span class="crt-e">' + ELEMENT_EMOJI[t.element] + t.element + '能量' + (isComp ? ' · ✦完全' : '') + '</span></div>' +
+        (adv.length ? '<div class="crt-s"><h5>天賦優勢</h5><ul>' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '') +
+        (career ? '<div class="crt-c"><h5>適合方向</h5><p>' + esc(career) + '</p></div>' : '') +
+        '</div>';
+    }).join('');
+
+    return '<div id="client-report">' +
+      '<div class="cr-head"><div class="cr-brand">✦ 天賦原理 · 個人天賦報告</div>' +
+        '<div class="cr-date">生日　' + b.year + ' / ' + pad2(b.month) + ' / ' + pad2(b.day) + '</div></div>' +
+      '<div class="cr-sec"><h2>你的天賦牌陣</h2><div class="cr-badges">' + cardBadges + '</div>' +
+        '<div class="cr-master">導師牌 ' + result.masterCards.join('、') +
+        (result.shadow.length ? '　·　陰影牌 ' + result.shadow.join('、') : '') + '</div>' + completeLine + '</div>' +
+      '<div class="cr-sec"><h2>四大能量分佈</h2>' + energyBars +
+        '<p class="cr-enote">' + energyNote + '</p></div>' +
+      '<div class="cr-sec"><h2>你的核心天賦</h2>' + talentBlocks + '</div>' +
+      '<div class="cr-foot">本報告依 MMT 天賦原理製作，作為自我覺察與潛能發展參考。</div>' +
+      '</div>';
+  }
+
   function render(result, opts) {
     opts = opts || {};
     var topic = detectTopic(opts.question);
@@ -412,7 +476,10 @@
 
     var html =
       header +
-      '<div class="report-actions"><button id="btn-print" class="btn-print">🖨️ 列印 / 存成 PDF</button></div>' +
+      '<div class="report-actions">' +
+        '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
+        '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
+      '</div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
       sectionCard('完全牌', '導師∩天賦，或天賦中 >14 的高階號碼（附：比較明顯）', completeSection(result)) +
@@ -420,13 +487,23 @@
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
       sectionCard('年度策略', '今年的心智策略', yearSection(result)) +
-      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref');
+      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
+      clientReportHTML(result);
 
     out.innerHTML = html;
     out.classList.add('has-report');
     out.classList.toggle('concise', opts.level !== 'full');
     var pb = document.getElementById('btn-print');
-    if (pb) pb.addEventListener('click', function () { window.print(); });
+    if (pb) pb.addEventListener('click', function () {
+      document.body.classList.remove('print-client');
+      window.print();
+    });
+    var cb = document.getElementById('btn-client');
+    if (cb) cb.addEventListener('click', function () {
+      document.body.classList.add('print-client');
+      window.print();
+    });
+    window.onafterprint = function () { document.body.classList.remove('print-client'); };
     // 每張牌的「展開更多／收合」
     Array.prototype.forEach.call(out.querySelectorAll('.tcard-expand'), function (btn) {
       btn.addEventListener('click', function () {

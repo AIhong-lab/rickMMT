@@ -281,6 +281,11 @@ body{
   .report-header h2{font-size:20px}
 }
 
+/* ===== 客戶版報告（螢幕隱藏，僅列印顯示）===== */
+#client-report{display:none}
+.btn-client{color:#1a1630;background:linear-gradient(100deg,var(--gold),#f0d693);border-color:transparent;font-weight:700}
+.btn-client:hover{filter:brightness(1.05)}
+
 /* 列印 / 存成 PDF */
 @media print{
   :root{--text:#1a1a2a;--muted:#555}
@@ -299,4 +304,46 @@ body{
   .report.concise .cm-notes,.report.concise .fam-flow,
   .report.concise .fam-card .hint,.report.concise .section-ref{display:block !important}
   .tcard-expand{display:none !important}
+
+  /* 客戶版模式：只印客戶報告 */
+  body.print-client #report > *{display:none !important}
+  body.print-client #report > #client-report{display:block !important}
+  @page{margin:14mm}
 }
+
+/* 客戶版版面（列印時） */
+#client-report{color:#1f2430;font-size:12.5px;line-height:1.6}
+.cr-head{display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:14px}
+.cr-brand{font-size:19px;font-weight:800;color:#7a5a12;letter-spacing:1px}
+.cr-date{font-size:12px;color:#666}
+#client-report h2{font-size:14px;margin:16px 0 8px;color:#1f2430;
+  border-left:5px solid var(--gold);padding-left:9px}
+.cr-sec{break-inside:avoid}
+.cr-badges{display:flex;flex-wrap:wrap;gap:8px}
+.crb{min-width:70px;text-align:center;border:1px solid color-mix(in srgb,var(--c) 55%,#ccc);
+  border-radius:9px;padding:7px 6px;background:color-mix(in srgb,var(--c) 12%,#fff)}
+.crb-n{display:block;font-size:22px;font-weight:800;color:color-mix(in srgb,var(--c) 75%,#000)}
+.crb-name{display:block;font-size:12px;color:#333}
+.crb-e{display:block;font-size:10px;color:#777}
+.cr-master{margin-top:8px;font-size:12px;color:#555}
+.cr-complete{margin-top:6px;font-size:12.5px;color:#7a5a12;font-weight:600}
+.cre-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+.cre-name{width:120px;font-size:12px}
+.cre-bar{flex:1;height:9px;background:#eee;border-radius:5px;overflow:hidden}
+.cre-bar i{display:block;height:100%;background:var(--c)}
+.cre-pct{width:96px;text-align:right;font-size:11.5px;color:#555}
+.cr-enote{margin:8px 0 0;font-size:12px;color:#444;background:#faf6ec;
+  border:1px solid #eadfc0;border-radius:8px;padding:8px 10px}
+.crt{break-inside:avoid;border:1px solid #e5e5e5;border-left:4px solid var(--c);
+  border-radius:8px;padding:9px 12px;margin:9px 0;background:#fff}
+.crt-h{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.crt-n{font-size:22px;font-weight:800;color:var(--c);min-width:30px;text-align:center}
+.crt-t{flex:1;font-size:13.5px}
+.crt-e{font-size:10.5px;color:#777;white-space:nowrap}
+.crt-s h5,.crt-c h5{margin:5px 0 3px;font-size:11px;color:#8a6d1f;letter-spacing:.5px}
+.crt-s ul{margin:0;padding-left:16px;columns:2;column-gap:18px}
+.crt-s li{font-size:11.5px;margin:1px 0}
+.crt-c p{margin:0;font-size:11.5px;color:#555}
+.cr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #ddd;
+  font-size:10px;color:#999;text-align:center}
