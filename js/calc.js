@@ -170,9 +170,12 @@
   //   例：R=10 → {1,10}；R=19 → {1,10,19}；R=22 → {4,13,0}。
   //   此時第二張天賦牌 = R，故必定形成完全牌（天賦∩導師）。
   function masterInfo(year, month, day) {
-    var all = String(year) + pad2(month) + pad2(day);
-    var S = sumDigits(all);
-    var R = (S <= 22) ? S : digitRoot(S);   // 生命靈數（1~22）
+    // 生命靈數基底＝西元年數字相加 ＋ 月 ＋ 日（月、日不拆），與第三張牌同基底。
+    //   例 1983/5/22：(1+9+8+3)+5+22 = 48 → 4+8 = 12（生命靈數）。
+    //   例 1984/9/20：(1+9+8+4)+9+20 = 51 → 5+1 = 6。
+    var base = sumDigits(year) + Number(month) + Number(day);
+    var R = base;
+    while (R > 22) R = sumDigits(R);         // 反覆數字相加到 <= 22（生命靈數）
     var root = digitRoot(R);                 // 主導師（單一數字 1~9）
     var raw = (FAMILIES[root] || [root]).map(function (v) { return v === 0 ? 22 : v; });
     var cards = raw.filter(function (v) { return v <= R; })
