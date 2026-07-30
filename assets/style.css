@@ -134,6 +134,13 @@ body{
 .tcard-role{display:inline-block;margin:8px 0 2px;font-size:11.5px;color:var(--gold);
   border:1px solid color-mix(in srgb,var(--gold) 40%,transparent);border-radius:20px;padding:2px 10px}
 .tcard-meta{font-size:12.5px;color:var(--muted);margin:6px 0 8px}
+/* v1.5 敘述段落 */
+.tcard-narr{margin:2px 0 6px;font-size:13px;line-height:1.75;color:var(--text);
+  padding:11px 13px;border-radius:10px;background:color-mix(in srgb,var(--c) 8%,transparent);
+  border:1px solid color-mix(in srgb,var(--c) 22%,transparent)}
+.ms-narr{font-size:12.5px;line-height:1.7;color:var(--muted);margin:4px 0 6px}
+.year-narr{font-size:13.5px;line-height:1.75;margin:6px 0}
+
 .tcard-sec{margin-top:10px}
 .tcard-sec h5{margin:0 0 5px;font-size:12px;color:var(--muted);letter-spacing:.5px;
   padding-left:8px;border-left:3px solid color-mix(in srgb,var(--c) 60%,transparent)}
@@ -345,5 +352,6 @@ body{
 .crt-s ul{margin:0;padding-left:16px;columns:2;column-gap:18px}
 .crt-s li{font-size:11.5px;margin:1px 0}
 .crt-c p{margin:0;font-size:11.5px;color:#555}
+.crt-narr{margin:4px 0 0;font-size:11.8px;line-height:1.72;color:#333;text-align:justify}
 .cr-foot{margin-top:16px;padding-top:8px;border-top:1px solid #ddd;
   font-size:10px;color:#999;text-align:center}

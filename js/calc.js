@@ -186,11 +186,15 @@
     return { lifeNumber: R, root: root, cards: cards };
   }
 
-  // 陰影牌 = 導師所屬家族中「不是導師牌、也沒有出現在天賦牌」的號碼。
-  //   例：導師 6 → 家族 {6,15}，15 不在天賦 → 陰影 15。可能 0~2 張。
-  function shadowOf(root, masterCards, talentCards) {
+  // 十二個陰影原型（敘述版 v1.5 定稿）：0 與 11~21。注意 10 不作陰影。
+  var SHADOW_ARCHETYPES = { 0: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
+
+  // 陰影牌（v1.5）＝導師家族中「不是導師牌」且「屬於十二陰影原型」的號碼。
+  //   與天賦牌無關；靈數 14 以上家族到齊、無陰影。
+  //   例：導師 6 → 家族 {6,15}，15 非導師且屬原型 → 陰影 15；導師 1 → 家族 {1,10,19}，10 不作陰影 → 只有 19。
+  function shadowOf(root, masterCards) {
     return family(root).filter(function (n) {
-      return masterCards.indexOf(n) < 0 && talentCards.indexOf(n) < 0;
+      return masterCards.indexOf(n) < 0 && SHADOW_ARCHETYPES[n];
     });
   }
 
@@ -274,13 +278,10 @@
     // 四大能量分母 = 所有天賦牌 + 導師牌。
     var energyCards = talentCards.concat(masterCards);
 
-    // 完全牌：
-    //   (1) 導師與天賦重疊的號碼（導師∩天賦；雙導師時必定存在），或
-    //   (2) 天賦牌中「大於 14」的高階號碼（15~22，其中 0 = 22）——必為完全牌。
-    var rawVal = function (n) { return n === 0 ? 22 : n; };
+    // 完全牌（敘述版 v1.5 定稿）＝導師與天賦出現同一個號碼（導師∩天賦）。
+    //   生命靈數 14 以上，拆出的導師必與天賦撞號，必定形成完全牌。
     var completeSet = {};
     masterCards.forEach(function (n) { if (talentCards.indexOf(n) >= 0) completeSet[n] = true; });
-    talentCards.forEach(function (n) { if (rawVal(n) > 14) completeSet[n] = true; });
     var completeCards = Object.keys(completeSet).map(Number)
       .sort(function (a, b) { return a - b; });
 
@@ -321,7 +322,7 @@
       master: masterRoot,                // 主導師（單一數字 1~9，用於原型/情節）
       masterCards: masterCards,          // 導師牌（1~3 張，雙導師/三導師）
       lifeNumber: mi.lifeNumber,         // 生命靈數（1~22）
-      shadow: shadowOf(masterRoot, masterCards, talentCards), // 陰影牌（0~2 張）
+      shadow: shadowOf(masterRoot, masterCards), // 陰影牌（依 v1.5 原型規則，0~2 張）
       family: family(masterRoot),        // 家族牌群組
       yearStrategy: yearStrategy(targetYear, month, day),
       energyCards: energyCards,          // 計算能量所用的牌組（含導師）

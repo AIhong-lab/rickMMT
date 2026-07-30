@@ -111,8 +111,10 @@
     function tier(k) { return foc(k) ? 'keep' : 'extra'; }
     var color = ELEMENT_COLORS[t.element];
     var tag = (t.numTag ? '（' + t.numTag + '）' : '');
+    var narrative = (D.NARRATIVE && D.NARRATIVE[num]) ? D.NARRATIVE[num] : '';
+    var narrBlock = narrative ? '<div class="tcard-narr keep">' + esc(narrative) + '</div>' : '';
 
-    var blocks = '' +
+    var blocks = narrBlock +
       // 精簡也一定顯示：優勢、非健康
       sec('天賦優勢', t.advantage, 'adv', 'keep') +
       sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow', 'keep') +
@@ -155,18 +157,17 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中，且天賦牌沒有大於 14 的號碼）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + result.masterCards.join('、') + ' 未出現在天賦牌中）。生命靈數 14 以上必有完全牌。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
       }).join('') + '</div>';
-      var mc = result.masterCards || [];
       body += cc.map(function (n) {
         var t = D.TALENTS[n];
         if (!t) return '';
-        var reason = mc.indexOf(n) >= 0 ? '天賦＝導師' : '高階號碼 >14';
-        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（' + reason + '）</b>' +
-          (t.career ? '<span>' + esc(formatPoints(t.career).join('、')) + '</span>' : '') + '</div>';
+        var narr = (D.NARRATIVE && D.NARRATIVE[n]) ? formatPoints(D.NARRATIVE[n])[0] : (t.career ? formatPoints(t.career).join('、') : '');
+        return '<div class="cm-line"><b>完全 ' + n + '　' + t.name + '「' + t.keyword + '」（導師＝天賦）</b>' +
+          (narr ? '<span>' + esc(narr) + '</span>' : '') + '</div>';
       }).join('');
     }
 
@@ -254,26 +255,28 @@
     var masterNums = result.masterCards.join('、');
     var isMulti = result.masterCards.length > 1;
     var shadowNums = shadow.length ? shadow.join('、') : '無';
+    var archOf = D.SHADOW_ARCH || {};
     var shadowDetail = shadow.map(function (n) {
-      var st = D.TALENTS[n];
-      return st ? '<p class="ms-arche">' + n + ' ' + st.name + '「' + st.keyword + '」· ' + ELEMENT_EMOJI[st.element] + st.element + '</p>' : '';
+      var st = D.TALENTS[n]; var a = archOf[n];
+      return (st ? '<p class="ms-arche">陰' + n + ' ' + st.name + '「' + st.keyword + '」' + (a ? '· 原型：<b>' + a.name + '</b>' : '') + '</p>' : '') +
+        (a && a.text ? '<p class="ms-narr">' + esc(a.text) + '</p>' : '');
     }).join('');
+    // 導師情節敘述（主導師）
+    var mn = (D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m]) ? D.MASTER_NARRATIVE[m] : null;
 
     return '' +
       '<div class="ms-grid">' +
         '<div class="ms-box">' +
           '<h4>導師牌 ' + masterNums + (isMulti ? '（雙導師）' : '') + '</h4>' +
-          '<p class="ms-arche">原型：<b>' + (arc.archetype || '—') + '</b>（主導師 ' + m + '）</p>' +
-          '<p>' + (arc.tend || '') + '</p>' +
-          '<p class="ms-pursue">核心追求：' + (arc.pursue || '—') + '　·　生命靈數：' + result.lifeNumber + '</p>' +
-          (relatedComplex ? '<p class="ms-complex">情節 · ' + relatedComplex + '</p>' : '') +
-          (isMulti ? '<p class="hint">生命靈數落在 10~22，出現多張導師牌；其中與天賦重疊者即為完全牌。</p>'
-                   : '<p class="hint">導師牌＝挖掘藏在潛意識的天賦（約 30~50% 的天賦能量），可靠刻意練習補足。</p>') +
+          '<p class="ms-pursue">主導師 ' + m + '（' + (arc.archetype || '') + '）　·　生命靈數：' + result.lifeNumber + '</p>' +
+          (mn ? '<p class="ms-arche"><b>' + esc(mn.title) + '</b></p><p class="ms-narr">' + esc(mn.text) + '</p>'
+              : '<p class="hint">導師牌＝隱藏在潛意識、只發揮 25~40% 的天賦，可靠刻意練習長成天賦牌。</p>') +
+          (isMulti ? '<p class="hint">生命靈數 10~22，出現多張導師；其中與天賦重疊者即為完全牌。</p>' : '') +
         '</div>' +
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
           shadowDetail +
-          '<p class="hint">陰影＝導師家族中「沒有出現在天賦牌」的號碼，是內在反覆影響自己的暗流。跨過之後，黑暗越多、成就也越多。</p>' +
+          '<p class="hint">陰影＝導師家族中未成為導師、且屬於十二陰影原型（0、11–21）的號碼；10 不作陰影，靈數 14 以上無陰影。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
@@ -285,16 +288,17 @@
 
   function yearSection(result) {
     var ys = result.yearStrategy;
+    var ystr = (D.YEAR_STRATEGY && D.YEAR_STRATEGY[ys]) ? D.YEAR_STRATEGY[ys] : null;
     var t = D.TALENTS[ys];
     return '' +
       '<div class="year-box">' +
-        '<div class="year-head">' + result.targetYear + ' 年度策略號碼：<b>' + ys + '</b></div>' +
-        (t ?
-          '<div class="year-body">' +
-            '<p><b>' + t.name + '「' + t.keyword + '」</b> · ' + ELEMENT_EMOJI[t.element] + t.element + '能量</p>' +
-            '<p>今年可有意識地運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' +
-            '<p class="hint">計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
-          '</div>' : '') +
+        '<div class="year-head">' + result.targetYear + ' 年度策略號碼：<b>' + ys + '</b>' +
+          (ystr ? '　' + esc(ystr.title.replace(/（[^）]*）$/, '')) : (t ? '　' + t.name : '')) + '</div>' +
+        '<div class="year-body">' +
+          (ystr ? '<p class="year-narr">' + esc(ystr.text) + '</p>'
+                : (t ? '<p>今年可運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' : '')) +
+          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。計算：' + result.targetYear + ' + ' + result.birthday.month + ' + ' + result.birthday.day + ' → 反覆數字相加 → ' + ys + '。</p>' +
+        '</div>' +
       '</div>';
   }
 
@@ -397,15 +401,22 @@
     var talentBlocks = distinct.map(function (n) {
       var t = D.TALENTS[n]; if (!t) return '';
       var c = ELEMENT_COLORS[t.element];
-      var adv = formatPoints(t.advantage).slice(0, 6);
-      var career = formatPoints(t.career).slice(0, 5).join('、');
       var isComp = result.completeCards.indexOf(n) >= 0;
+      var narr = (D.NARRATIVE && D.NARRATIVE[n]) ? D.NARRATIVE[n] : '';
+      var body;
+      if (narr) {
+        // 去掉敘述開頭「N號・名稱（代表詞）｜占星×神話」抬頭，避免與卡片標題重複
+        var txt = narr.replace(/^[0-9]+號[^　]*　/, '').replace(/^[0-9]+號[^｜]*｜[^　]*　?/, '');
+        body = '<p class="crt-narr">' + esc(txt) + '</p>';
+      } else {
+        var adv = formatPoints(t.advantage).slice(0, 6);
+        body = (adv.length ? '<div class="crt-s"><h5>天賦優勢</h5><ul>' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '');
+      }
       return '<div class="crt" style="--c:' + c + '">' +
         '<div class="crt-h"><span class="crt-n">' + n + '</span>' +
         '<span class="crt-t"><b>' + t.name + '</b>「' + t.keyword + '」</span>' +
         '<span class="crt-e">' + ELEMENT_EMOJI[t.element] + t.element + '能量' + (isComp ? ' · ✦完全' : '') + '</span></div>' +
-        (adv.length ? '<div class="crt-s"><h5>天賦優勢</h5><ul>' + adv.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' : '') +
-        (career ? '<div class="crt-c"><h5>適合方向</h5><p>' + esc(career) + '</p></div>' : '') +
+        body +
         '</div>';
     }).join('');
 
@@ -482,7 +493,7 @@
       '</div>' +
       sectionCard('牌陣總覽', '六張天賦牌 + 導師 + 陰影', overviewBadges) +
       sectionCard('四大能量', '六張天賦牌 + 導師牌（共 7 張）· >25% 為高能量，0 張為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '導師∩天賦，或天賦中 >14 的高階號碼（附：比較明顯）', completeSection(result)) +
+      sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', '內在 3 + 外在 3' + (result.boundaryCard != null ? ' + 天地交界 1' : '') + '（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
