@@ -245,6 +245,17 @@ body{
 .year-head b{color:var(--gold);font-size:22px}
 .year-body p{margin:6px 0;font-size:14px}
 
+/* 整合總結 */
+.report-section.section-summary{border-color:color-mix(in srgb,var(--gold) 42%,var(--line));
+  background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 7%,transparent),transparent)}
+.summary-box{font-size:14.5px;line-height:1.95}
+.summary-box p{margin:0 0 12px}
+.summary-box p:last-child{margin-bottom:0}
+.summary-box .summary-final{margin-top:4px;padding:12px 15px;
+  border-left:3px solid var(--gold);border-radius:8px;
+  background:color-mix(in srgb,var(--gold) 10%,transparent);font-size:15px}
+.summary-box .summary-final b{color:var(--gold)}
+
 /* 步驟 */
 .steps{counter-reset:none;margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:9px}
 .steps li{font-size:13.5px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
@@ -364,6 +375,10 @@ body{
   .cm-intro,.cm-line span,.fam-role,.fam-mission li,.fam-flow{font-size:11pt !important;line-height:1.7 !important;color:#1a1a2a}
   .cm-line b,.year-head b,.ms-box h4{color:#7a5a12}
   .hint{font-size:10pt !important;color:#555 !important}
+  .section-summary{background:#fff !important}
+  .summary-box{font-size:11.5pt !important;line-height:1.9 !important;color:#1a1a2a}
+  .summary-box .summary-final{background:#faf7ee !important;border-left:3px solid #c8a24a !important}
+  .summary-box b,.summary-box .summary-final b{color:#7a5a12 !important}
 
   /* 列印時顯示完整內容 */
   .report.concise .tcard-sec.extra{display:block !important}

@@ -312,6 +312,108 @@
     return '<ol class="steps">' + rows + '</ol>';
   }
 
+  // ---- 整合總結：把內外在、能量、導師、陰影串成一段話 ----
+  function tLabel(n) {
+    var t = D.TALENTS[n];
+    return t ? t.name + '「' + t.keyword + '」' : ('' + n);
+  }
+  function joinTLabels(arr) {
+    var seen = {}, out = [];
+    arr.forEach(function (n) { if (!seen[n]) { seen[n] = 1; out.push(tLabel(n)); } });
+    return out.join('、');
+  }
+  function summarySection(result) {
+    var order = ['風', '火', '水', '土'];
+    var name = result.name ? result.name : '你';
+    var inner = result.inner || [];
+    var outer = result.outer || [];
+    var hasSplit = inner.length && outer.length;
+    var hasEnergy = order.some(function (e) { return result.energy[e].percent > 0; });
+    var top = order.slice().sort(function (a, b) { return result.energy[b].percent - result.energy[a].percent; })[0];
+    var topE = D.ELEMENTS[top];
+    var zeros = order.filter(function (e) { return result.energy[e].level === 'zero'; });
+    var parts = [];
+
+    // 1) 主導能量
+    if (hasEnergy) {
+      var p1 = name + '，你是一個以「' + topE.pursue + '」為核心驅動的人，帶著「' + topE.person +
+        '」的特質——' + topE.high.traits.slice(0, 4).join('、') + '。';
+      if (zeros.length) {
+        p1 += '相對地，你在「' + zeros.map(function (e) { return D.ELEMENTS[e].pursue; }).join('、') +
+          '」上的能量偏低，這一塊往往要靠他人或環境來補足：' + D.ELEMENTS[zeros[0]].zero.task;
+      }
+      parts.push(p1);
+    } else {
+      parts.push(name + '，以下是把你整張天賦盤串起來的整合解讀。');
+    }
+
+    // 2) 內外整合
+    if (hasSplit) {
+      var p2 = '在內在思維上，你天生是' + joinTLabels(inner) + '的組合，這是你消化世界、與自己對話的方式；' +
+        '面對外在世界時，你則展現出' + joinTLabels(outer) + '的樣貌，這是別人眼中的你、你與人互動的方式。';
+      var common = inner.filter(function (n) { return outer.indexOf(n) >= 0; });
+      var inEl = {}, outEl = {};
+      inner.forEach(function (n) { var t = D.TALENTS[n]; if (t) inEl[t.element] = 1; });
+      outer.forEach(function (n) { var t = D.TALENTS[n]; if (t) outEl[t.element] = 1; });
+      var sharedEl = Object.keys(inEl).filter(function (e) { return outEl[e]; });
+      if (common.length) {
+        p2 += '其中' + joinTLabels(common) + '內外都有，代表這股特質從裡到外一致，是你最穩定、最不費力就能展現的天賦。';
+      } else if (sharedEl.length) {
+        p2 += '內外整體以「' + sharedEl.join('、') + '」能量相呼應，心裡想的和表現出來的方向大致一致。';
+      } else {
+        p2 += '內在與外在的調性有些落差，代表你「心裡想的」和「做出來的」不完全一樣；認得這份張力，你會更懂得怎麼安放自己。';
+      }
+      parts.push(p2);
+    } else if (result.talentCards.length) {
+      parts.push('你的天賦組合是' + joinTLabels(result.talentCards) + '，這些是你最擅長、最能發光的能力。');
+    }
+
+    // 3) 完全牌 / 明顯牌
+    if (result.completeCards && result.completeCards.length) {
+      parts.push('特別的是，' + joinTLabels(result.completeCards) +
+        '是你的完全牌——導師與天賦重疊，能量從潛意識到外顯完全打通，是你最強、最外顯的存在狀態，一定要用出來。');
+    } else if (result.prominentCards && result.prominentCards.length) {
+      var pc = result.prominentCards.map(function (c) { return tLabel(c.num) + '（' + c.count + ' 張）'; }).join('、');
+      parts.push(pc + '在你的牌陣裡出現不只一次，是被加乘放大的優勢，格外值得刻意發揮。');
+    }
+
+    // 4) 導師 + 陰影
+    var masters = result.masterCards || [];
+    if (masters.length) {
+      var mtxt = masters.map(function (m) {
+        var mn = D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m];
+        var cx = D.COMPLEXES && D.COMPLEXES[m];
+        var voice = cx ? cx.replace(/^[^：:]*[：:]/, '').replace(/[。.\s]+$/, '').trim() : '';   // 去前綴與句尾句號，留內在聲音
+        return '導師 ' + m + (mn ? '「' + mn.title + '」' : '') + (voice ? '——' + voice : '');
+      }).join('；');
+      var p4 = '你的成長方向藏在導師牌裡：' + mtxt + '。導師是還沒長成的潛能，可以靠刻意練習慢慢補起來。';
+      if (result.shadow && result.shadow.length) {
+        var stxt = result.shadow.map(function (n) {
+          var a = D.SHADOW_ARCH && D.SHADOW_ARCH[n];
+          var t = D.TALENTS[n];
+          return '陰 ' + n + (t ? ' ' + t.name : '') + (a ? '（' + a.name + '原型）' : '');
+        }).join('、');
+        p4 += '而你的陰影是' + stxt + '——它不能練、只能和解，看懂它反而是你走得更遠的鑰匙。';
+      }
+      parts.push(p4);
+    }
+
+    // 5) 一句話收尾
+    var strongest = (result.completeCards && result.completeCards[0] != null) ? result.completeCards[0]
+      : (result.prominentCards && result.prominentCards[0] ? result.prominentCards[0].num
+      : (result.talentCards[0] != null ? result.talentCards[0] : null));
+    var closing = '<b>一句話：</b>你是' + (hasEnergy ? '以「' + topE.pursue + '」驅動' : '') +
+      (strongest != null ? '、以' + tLabel(strongest) + '為代表天賦' : '') +
+      '的人。順著主導能量走、把最強的天賦做到極致，同時往導師的方向刻意練習、與陰影和解，你會越來越活出完整的自己。';
+    parts.push(closing);
+
+    return '<div class="summary-box">' +
+      parts.map(function (p, i) {
+        return '<p' + (i === parts.length - 1 ? ' class="summary-final"' : '') + '>' + p + '</p>';
+      }).join('') +
+      '</div>';
+  }
+
   function sectionCard(title, subtitle, bodyHTML, cls) {
     return '' +
       '<section class="report-section ' + (cls || '') + '">' +
@@ -529,6 +631,7 @@
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
       (result.yearStrategy != null ? sectionCard('年度策略', '當年度的心智策略（不分析事件結果）', yearSection(result)) : '') +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
+      sectionCard('整合總結', '把內在、外在、能量與導師陰影串成一段話', summarySection(result), 'section-summary') +
       clientReportHTML(result);
 
     out.innerHTML = html;
