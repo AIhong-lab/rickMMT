@@ -63,6 +63,7 @@ body{
 }
 .field-q input:focus{outline:none;border-color:var(--accent)}
 .field-q input::placeholder{color:#6b7098}
+.form-grid-2{grid-template-columns:1fr 1fr;margin-top:14px}
 .form-grid-3{grid-template-columns:1fr 1fr 1fr;margin-top:14px}
 .field-t input{
   background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
@@ -451,10 +452,16 @@ body{
         <span>稱呼／姓名（可留空）</span>
         <input id="in-name" type="text" autocomplete="off" placeholder="例如：小明／客戶 A">
       </label>
-      <label class="field field-q">
-        <span>天賦號碼（用逗號或空白分隔）</span>
-        <input id="in-talents" type="text" autocomplete="off" placeholder="例如：0, 4, 8, 9, 10, 11">
-      </label>
+      <div class="form-grid form-grid-2">
+        <label class="field field-t">
+          <span>內在天賦（自身思維 · 三張）</span>
+          <input id="in-inner" type="text" autocomplete="off" placeholder="例如：5, 6, 6">
+        </label>
+        <label class="field field-t">
+          <span>外在天賦（與世界相處 · 三張）</span>
+          <input id="in-outer" type="text" autocomplete="off" placeholder="例如：6, 7, 11">
+        </label>
+      </div>
       <div class="form-grid form-grid-3">
         <label class="field field-t">
           <span>導師（可多張）</span>
@@ -1780,24 +1787,44 @@ body{
     // 天賦號碼徽章（依輸入順序；重複的標注張數）
     var counts = {};
     result.talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
-    var talentBadges = result.talentCards.map(function (n) {
-      return talentBadge(n, counts[n] > 1 ? '×' + counts[n] : '');
-    }).join('');
+    var inner = result.inner || [];
+    var outer = result.outer || [];
+    var hasSplit = inner.length && outer.length;
 
-    var overviewBadges =
-      '<div class="overview-cards">' +
-        '<div class="ov-group"><h5>天賦牌（' + result.talentCards.length + ' 張）</h5><div class="ov-row">' +
-          talentBadges +
-        '</div></div>' +
-        '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
-          (result.masterCards.length
-            ? result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('')
-            : '<div class="badge" style="--c:#666"><span class="badge-label">導師</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
-          (result.shadow.length
-            ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
-            : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
-        '</div></div>' +
-      '</div>';
+    var masterShadowGroup =
+      '<div class="ov-group"><h5>導師 / 陰影</h5><div class="ov-row">' +
+        (result.masterCards.length
+          ? result.masterCards.map(function (n) { return talentBadge(n, '導師'); }).join('')
+          : '<div class="badge" style="--c:#666"><span class="badge-label">導師</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
+        (result.shadow.length
+          ? result.shadow.map(function (n) { return talentBadge(n, '陰影'); }).join('')
+          : '<div class="badge" style="--c:#666"><span class="badge-label">陰影</span><span class="badge-num">—</span><span class="badge-name">無</span></div>') +
+      '</div></div>';
+
+    var overviewBadges;
+    if (hasSplit) {
+      overviewBadges =
+        '<div class="overview-cards">' +
+          '<div class="ov-group"><h5>內在（自身思維設計 · ' + inner.length + ' 張）</h5><div class="ov-row">' +
+            inner.map(function (n) { return talentBadge(n); }).join('') +
+          '</div></div>' +
+          '<div class="ov-group"><h5>外在（與世界的相處 · ' + outer.length + ' 張）</h5><div class="ov-row">' +
+            outer.map(function (n) { return talentBadge(n); }).join('') +
+          '</div></div>' +
+          masterShadowGroup +
+        '</div>';
+    } else {
+      var talentBadges = result.talentCards.map(function (n) {
+        return talentBadge(n, counts[n] > 1 ? '×' + counts[n] : '');
+      }).join('');
+      overviewBadges =
+        '<div class="overview-cards">' +
+          '<div class="ov-group"><h5>天賦牌（' + result.talentCards.length + ' 張）</h5><div class="ov-row">' +
+            talentBadges +
+          '</div></div>' +
+          masterShadowGroup +
+        '</div>';
+    }
 
     var focusBanner = '';
     if (topic.hasQuestion) {
@@ -1816,14 +1843,27 @@ body{
           '　·　陰影 ' + (result.shadow.length ? result.shadow.join('、') : '無') + '</p>' +
       '</div>' + focusBanner;
 
-    // 每個不重複的天賦號碼詳細解說
-    var seen = {}, detailCards = '';
-    result.talentCards.forEach(function (n) {
-      if (seen[n]) return;
-      seen[n] = 1;
-      var label = counts[n] > 1 ? '天賦牌 · 出現 ' + counts[n] + ' 張（優勢加成）' : '天賦牌';
-      detailCards += talentCardDetail(n, label, focusKeys);
-    });
+    // 詳細解說：有分內外→依位置逐張；否則不重複列出
+    var detailCards = '';
+    if (hasSplit) {
+      inner.forEach(function (n, i) {
+        detailCards += talentCardDetail(n, '內在 · 第 ' + (i + 1) + ' 張', focusKeys);
+      });
+      outer.forEach(function (n, i) {
+        detailCards += talentCardDetail(n, '外在 · 第 ' + (inner.length + i + 1) + ' 張', focusKeys);
+      });
+    } else {
+      var seen = {};
+      result.talentCards.forEach(function (n) {
+        if (seen[n]) return;
+        seen[n] = 1;
+        var label = counts[n] > 1 ? '天賦牌 · 出現 ' + counts[n] + ' 張（優勢加成）' : '天賦牌';
+        detailCards += talentCardDetail(n, label, focusKeys);
+      });
+    }
+    var detailSub = hasSplit
+      ? '內在 ' + inner.length + ' 張 + 外在 ' + outer.length + ' 張（說明取自 MMT上課整理）'
+      : '每張天賦牌的完整解讀（說明取自 MMT上課整理）';
 
     var html =
       header +
@@ -1835,7 +1875,7 @@ body{
       sectionCard('四大能量', '>25% 為高能量，0% 為 0 能量', energySection(result.energy)) +
       sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
       sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
-      sectionCard('天賦牌 · 詳細解讀', '每張天賦牌的完整解讀（說明取自 MMT上課整理）', '<div class="tcards">' + detailCards + '</div>') +
+      sectionCard('天賦牌 · 詳細解讀', detailSub, '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
       (result.yearStrategy != null ? sectionCard('年度策略', '當年度的心智策略（不分析事件結果）', yearSection(result)) : '') +
       sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
@@ -1912,7 +1952,9 @@ body{
 
   function buildResult() {
     var name = ($('#in-name') ? $('#in-name').value : '').trim();
-    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
+    var innerCards = parseNums($('#in-inner') ? $('#in-inner').value : '');
+    var outerCards = parseNums($('#in-outer') ? $('#in-outer').value : '');
+    var talentCards = innerCards.concat(outerCards);
     var masterCards = parseNums($('#in-master') ? $('#in-master').value : '');
     var master = masterCards.length ? masterCards[0] : null;
     var shadow = parseNums($('#in-shadow') ? $('#in-shadow').value : '');
@@ -1944,6 +1986,8 @@ body{
     return {
       name: name,
       talentCards: talentCards,
+      inner: innerCards,
+      outer: outerCards,
       master: master,
       masterCards: masterCards,
       shadow: shadow,
@@ -1958,16 +2002,17 @@ body{
   }
 
   function onGenerate() {
-    var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
-    if (!talentCards.length) {
-      alert('請至少輸入一個天賦號碼（0~21，用逗號或空白分隔）。');
+    var n = parseNums($('#in-inner') ? $('#in-inner').value : '').length +
+            parseNums($('#in-outer') ? $('#in-outer').value : '').length;
+    if (!n) {
+      alert('請至少輸入一個天賦號碼（內在或外在，0~21，用逗號或空白分隔）。');
       return;
     }
     var result = buildResult();
     render(result, { level: currentLevel() });
     try {
       localStorage.setItem('mmt:manual', JSON.stringify({
-        name: $('#in-name').value, talents: $('#in-talents').value,
+        name: $('#in-name').value, inner: $('#in-inner').value, outer: $('#in-outer').value,
         master: $('#in-master').value, shadow: $('#in-shadow').value,
         year: $('#in-year-strategy').value, yearLabel: $('#in-year-label').value,
         e: [$('#in-e-wind').value, $('#in-e-fire').value, $('#in-e-water').value, $('#in-e-earth').value]
@@ -1983,7 +2028,8 @@ body{
       if (!raw) return;
       var v = JSON.parse(raw);
       setVal('#in-name', v.name);
-      setVal('#in-talents', v.talents);
+      setVal('#in-inner', v.inner);
+      setVal('#in-outer', v.outer);
       setVal('#in-master', v.master);
       setVal('#in-shadow', v.shadow);
       setVal('#in-year-strategy', v.year);
@@ -2005,7 +2051,7 @@ body{
       });
     });
     // 各輸入欄按 Enter 直接生成
-    ['#in-talents', '#in-master', '#in-shadow', '#in-year-strategy', '#in-year-label'].forEach(function (sel) {
+    ['#in-inner', '#in-outer', '#in-master', '#in-shadow', '#in-year-strategy', '#in-year-label'].forEach(function (sel) {
       var n = $(sel);
       if (n) n.addEventListener('keydown', function (e) { if (e.key === 'Enter') onGenerate(); });
     });

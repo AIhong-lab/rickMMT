@@ -55,6 +55,7 @@ body{
 }
 .field-q input:focus{outline:none;border-color:var(--accent)}
 .field-q input::placeholder{color:#6b7098}
+.form-grid-2{grid-template-columns:1fr 1fr;margin-top:14px}
 .form-grid-3{grid-template-columns:1fr 1fr 1fr;margin-top:14px}
 .field-t input{
   background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
