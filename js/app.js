@@ -116,21 +116,21 @@
     var blocks = narrBlock +
       // 精簡也一定顯示：優勢、非健康
       sec('天賦優勢', t.advantage, 'adv', 'keep') +
-      sec('非健康能量（優勢過頭）', t.unhealthy, 'shadow', 'keep') +
+      sec('要小心的地方（優點用過頭）', t.unhealthy, 'shadow', 'keep') +
       // 應用類：被聚焦的升為 keep 並高亮
-      sec('應用 · 職場（含完全人格）', t.career, 'app', tier('career'), foc('career')) +
-      sec('應用 · 兩性', t.love, 'app', tier('love'), foc('love')) +
-      pairSec('財富心智（錨定對標）', t.wealthMind, t.wealthMindDesc, 'app', tier('wealth'), foc('wealth')) +
-      pairSec('天賦變現', t.monetize, t.monetizeDesc, 'app', tier('monetize'), foc('monetize')) +
+      sec('用在工作上', t.career, 'app', tier('career'), foc('career')) +
+      sec('用在感情上', t.love, 'app', tier('love'), foc('love')) +
+      pairSec('賺錢的腦袋（可以對標誰）', t.wealthMind, t.wealthMindDesc, 'app', tier('wealth'), foc('wealth')) +
+      pairSec('怎麼把天賦變成錢', t.monetize, t.monetizeDesc, 'app', tier('monetize'), foc('monetize')) +
       // 其餘一律收在展開內
       '<div class="tcard-cols extra">' +
-        sec('占星（行為模式）', t.astrology, 'astro', 'inline') +
-        sec('神話人物', t.myth, 'myth', 'inline') +
+        sec('行為風格', t.astrology, 'astro', 'inline') +
+        sec('像哪個神話人物', t.myth, 'myth', 'inline') +
       '</div>' +
-      sec('討論「像 / 不像」', t.likeness, '', 'extra') +
-      pairSec('潛意識', t.subconscious, t.subconsciousDesc, '', 'extra') +
-      sec('備註', t.note, '', 'extra') +
-      sec('總結', t.summary, '', 'extra');
+      sec('想想你像不像', t.likeness, '', 'extra') +
+      pairSec('潛意識裡的信念', t.subconscious, t.subconsciousDesc, '', 'extra') +
+      sec('補充', t.note, '', 'extra') +
+      sec('一句話總結', t.summary, '', 'extra');
 
     return '' +
       '<div class="tcard" style="--c:' + color + '">' +
@@ -156,7 +156,7 @@
     var body = '<p class="cm-intro">' + esc(meta.intro || '') + '</p>';
 
     if (!cc.length) {
-      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + (result.master != null ? result.master : '—') + ' 沒有同時出現在天賦牌中）。</p>';
+      body += '<p class="hint"><b>沒有完全牌</b>（導師 ' + (result.master != null ? result.master : '—') + ' 沒有同時出現在天賦牌裡，所以這次沒有從裡到外完全打通的號碼）。</p>';
     } else {
       body += '<div class="ov-row">' + cc.map(function (n) {
         return talentBadge(n, '完全牌');
@@ -213,7 +213,7 @@
           '<div class="fam-badges">' + badges + '</div>' +
           (missionRows ? '<ul class="fam-mission">' + missionRows + '</ul>' : '') +
           (f.flow ? '<p class="fam-flow">順流：' + esc(f.flow) + '</p>' : '') +
-          (g.missing.length && !g.complete ? '<p class="fam-missing">缺 ' + g.missing.join('、') + '：三位一體會召喚缺的那一張（可刻意練習補足）。</p>' : '') +
+          (g.missing.length && !g.complete ? '<p class="fam-missing">少了 ' + g.missing.join('、') + '：這個家族缺一張時，你會特別渴望補上那一張（可以刻意練習補起來）。</p>' : '') +
           (TYPE[f.type] ? '<p class="hint">' + esc(TYPE[f.type]) + '</p>' : '') +
         '</div>';
     }).join('');
@@ -265,7 +265,7 @@
           var mn = (D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m]) ? D.MASTER_NARRATIVE[m] : null;
           return '<h4>導師牌 ' + m + '　' + (t ? t.name : '') + '</h4>' +
             (mn ? '<p class="ms-arche"><b>' + esc(mn.title) + '</b></p><p class="ms-narr">' + esc(mn.text) + '</p>'
-                : '<p class="hint">導師牌＝隱藏在潛意識、只發揮 25~40% 的天賦，可靠刻意練習長成天賦牌。</p>');
+                : '<p class="hint">導師牌是你藏在心底、平常只用出一小部分的天賦，多練習就能慢慢長成強項。</p>');
         }).join('<hr class="ms-div">')
       : '<h4>導師牌 —</h4><p class="hint">未輸入導師牌。</p>';
 
@@ -277,12 +277,12 @@
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
           shadowDetail +
-          '<p class="hint">陰影＝導師家族中「非導師」且屬於十二原型（0、11–21）的號碼（與天賦牌無關，就算出現在天賦仍是陰影）；10 不作陰影。陰影不能練，只能和解——黑暗越多，走過去成就也越多。</p>' +
+          '<p class="hint">陰影就是導師同一家族裡、你比較不想面對的那一面（0、11–21 這些號碼，10 不算）；不管有沒有出現在天賦牌都算。陰影練不掉，只能和它和好——你願意面對多少黑暗，就能走多遠。</p>' +
         '</div>' +
         '<div class="ms-box">' +
           '<h4>家族牌</h4>' +
           '<div class="fam-badges">' + famBadges + '</div>' +
-          '<p class="hint">同一家族（相同數字根）彼此呼應，三位一體可彌補缺陷。</p>' +
+          '<p class="hint">同一個家族（尾數加起來相同）的號碼會互相呼應、彼此補位。</p>' +
         '</div>' +
       '</div>';
   }
@@ -300,7 +300,7 @@
         '<div class="year-body">' +
           (ystr ? '<p class="year-narr">' + esc(ystr.text) + '</p>'
                 : (t ? '<p>今年可運用「' + formatPoints(t.advantage).slice(0, 4).join('、') + '」的心智策略。</p>' : '')) +
-          '<p class="hint">年度策略只分析心智狀態、不分析事件結果。</p>' +
+          '<p class="hint">年度策略只看今年你的心態怎麼走，不預測會發生什麼事。</p>' +
         '</div>' +
       '</div>';
   }
@@ -336,45 +336,45 @@
 
     // 1) 主導能量
     if (hasEnergy) {
-      var p1 = name + '，你是一個以「' + topE.pursue + '」為核心驅動的人，帶著「' + topE.person +
-        '」的特質——' + topE.high.traits.slice(0, 4).join('、') + '。';
+      var p1 = name + '，你這個人最在乎、最有動力的就是「' + topE.pursue + '」，天生是「' + topE.person +
+        '」——' + topE.high.traits.slice(0, 4).join('、') + '。';
       if (zeros.length) {
-        p1 += '相對地，你在「' + zeros.map(function (e) { return D.ELEMENTS[e].pursue; }).join('、') +
-          '」上的能量偏低，這一塊往往要靠他人或環境來補足：' + D.ELEMENTS[zeros[0]].zero.task;
+        p1 += '相對地，「' + zeros.map(function (e) { return D.ELEMENTS[e].pursue; }).join('、') +
+          '」這一塊你的電力比較弱，通常要靠身邊的人或環境幫你補：' + D.ELEMENTS[zeros[0]].zero.task;
       }
       parts.push(p1);
     } else {
-      parts.push(name + '，以下是把你整張天賦盤串起來的整合解讀。');
+      parts.push(name + '，下面用一段話把你整張天賦盤串起來，讓你更懂自己。');
     }
 
     // 2) 內外整合
     if (hasSplit) {
-      var p2 = '在內在思維上，你天生是' + joinTLabels(inner) + '的組合，這是你消化世界、與自己對話的方式；' +
-        '面對外在世界時，你則展現出' + joinTLabels(outer) + '的樣貌，這是別人眼中的你、你與人互動的方式。';
+      var p2 = '你「心裡怎麼想事情」比較偏' + joinTLabels(inner) + '；' +
+        '而「做出來、給別人看到的你」則是' + joinTLabels(outer) + '的樣子。';
       var common = inner.filter(function (n) { return outer.indexOf(n) >= 0; });
       var inEl = {}, outEl = {};
       inner.forEach(function (n) { var t = D.TALENTS[n]; if (t) inEl[t.element] = 1; });
       outer.forEach(function (n) { var t = D.TALENTS[n]; if (t) outEl[t.element] = 1; });
       var sharedEl = Object.keys(inEl).filter(function (e) { return outEl[e]; });
       if (common.length) {
-        p2 += '其中' + joinTLabels(common) + '內外都有，代表這股特質從裡到外一致，是你最穩定、最不費力就能展現的天賦。';
+        p2 += '其中' + joinTLabels(common) + '對內對外都有，代表這個特質從裡到外都一樣，是你最自然、最不費力就能拿出來的天賦。';
       } else if (sharedEl.length) {
-        p2 += '內外整體以「' + sharedEl.join('、') + '」能量相呼應，心裡想的和表現出來的方向大致一致。';
+        p2 += '整體來說內外都偏「' + sharedEl.join('、') + '」能量，你心裡想的和做出來的方向蠻一致。';
       } else {
-        p2 += '內在與外在的調性有些落差，代表你「心裡想的」和「做出來的」不完全一樣；認得這份張力，你會更懂得怎麼安放自己。';
+        p2 += '你「心裡想的」和「做出來的」不太一樣；知道這個落差，就比較不會跟自己過不去。';
       }
       parts.push(p2);
     } else if (result.talentCards.length) {
-      parts.push('你的天賦組合是' + joinTLabels(result.talentCards) + '，這些是你最擅長、最能發光的能力。');
+      parts.push('你的天賦是' + joinTLabels(result.talentCards) + '，這些是你最拿手、最能發光的地方。');
     }
 
     // 3) 完全牌 / 明顯牌
     if (result.completeCards && result.completeCards.length) {
-      parts.push('特別的是，' + joinTLabels(result.completeCards) +
-        '是你的完全牌——導師與天賦重疊，能量從潛意識到外顯完全打通，是你最強、最外顯的存在狀態，一定要用出來。');
+      parts.push('特別要講的是，' + joinTLabels(result.completeCards) +
+        '是你的完全牌——導師和天賦剛好同一個號碼，這股能量從心底到表面完全打通，是你最強、最藏不住的一面，一定要拿出來用。');
     } else if (result.prominentCards && result.prominentCards.length) {
       var pc = result.prominentCards.map(function (c) { return tLabel(c.num) + '（' + c.count + ' 張）'; }).join('、');
-      parts.push(pc + '在你的牌陣裡出現不只一次，是被加乘放大的優勢，格外值得刻意發揮。');
+      parts.push(pc + '在你的牌裡出現不只一次，等於同一個優點被放大，特別值得好好發揮。');
     }
 
     // 4) 導師 + 陰影
@@ -386,14 +386,14 @@
         var voice = cx ? cx.replace(/^[^：:]*[：:]/, '').replace(/[。.\s]+$/, '').trim() : '';   // 去前綴與句尾句號，留內在聲音
         return '導師 ' + m + (mn ? '「' + mn.title + '」' : '') + (voice ? '——' + voice : '');
       }).join('；');
-      var p4 = '你的成長方向藏在導師牌裡：' + mtxt + '。導師是還沒長成的潛能，可以靠刻意練習慢慢補起來。';
+      var p4 = '想再進步，看導師牌就知道方向：' + mtxt + '。導師是還沒長好的潛力，慢慢練就補得起來。';
       if (result.shadow && result.shadow.length) {
         var stxt = result.shadow.map(function (n) {
           var a = D.SHADOW_ARCH && D.SHADOW_ARCH[n];
           var t = D.TALENTS[n];
           return '陰 ' + n + (t ? ' ' + t.name : '') + (a ? '（' + a.name + '原型）' : '');
         }).join('、');
-        p4 += '而你的陰影是' + stxt + '——它不能練、只能和解，看懂它反而是你走得更遠的鑰匙。';
+        p4 += '至於陰影' + stxt + '——這部分練不掉，只能跟它和好；願意看懂它，反而會讓你走得更遠。';
       }
       parts.push(p4);
     }
@@ -402,9 +402,9 @@
     var strongest = (result.completeCards && result.completeCards[0] != null) ? result.completeCards[0]
       : (result.prominentCards && result.prominentCards[0] ? result.prominentCards[0].num
       : (result.talentCards[0] != null ? result.talentCards[0] : null));
-    var closing = '<b>一句話：</b>你是' + (hasEnergy ? '以「' + topE.pursue + '」驅動' : '') +
-      (strongest != null ? '、以' + tLabel(strongest) + '為代表天賦' : '') +
-      '的人。順著主導能量走、把最強的天賦做到極致，同時往導師的方向刻意練習、與陰影和解，你會越來越活出完整的自己。';
+    var closing = '<b>一句話：</b>你是' + (hasEnergy ? '靠「' + topE.pursue + '」在走' : '') +
+      (strongest != null ? '、最招牌的天賦是' + tLabel(strongest) : '') +
+      '的人。順著你最強的能量走、把拿手的天賦做到極致，再往導師的方向多練、跟陰影和好，你會越來越活出真正的自己。';
     parts.push(closing);
 
     return '<div class="summary-box">' +
@@ -623,15 +623,15 @@
         '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
         '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
       '</div>' +
-      sectionCard('牌陣總覽', '天賦牌 + 導師 + 陰影', overviewBadges) +
-      sectionCard('四大能量', '>25% 為高能量，0% 為 0 能量', energySection(result.energy)) +
-      sectionCard('完全牌', '導師與天賦出現同一號碼（附：比較明顯）', completeSection(result)) +
-      sectionCard('家族關係', '同數字根的家族群組與使命', '<div class="fam-wrap">' + familySection(result) + '</div>') +
+      sectionCard('牌陣總覽', '你的天賦牌、導師、陰影一次看', overviewBadges) +
+      sectionCard('四大能量', '超過 25% 算高能量，0% 算沒有這個能量', energySection(result.energy)) +
+      sectionCard('完全牌', '導師和天賦剛好是同一個號碼，這股能量最強', completeSection(result)) +
+      sectionCard('家族關係', '尾數加起來相同的號碼，會湊成一個家族', '<div class="fam-wrap">' + familySection(result) + '</div>') +
       sectionCard('天賦牌 · 詳細解讀', detailSub, '<div class="tcards">' + detailCards + '</div>') +
-      sectionCard('導師 · 陰影 · 家族牌', '潛意識與內在暗流', masterSection(result)) +
-      (result.yearStrategy != null ? sectionCard('年度策略', '當年度的心智策略（不分析事件結果）', yearSection(result)) : '') +
-      sectionCard('解盤參考順序', '完整解盤的七個步驟', stepsSection(), 'section-ref') +
-      sectionCard('整合總結', '把內在、外在、能量與導師陰影串成一段話', summarySection(result), 'section-summary') +
+      sectionCard('導師 · 陰影 · 家族牌', '藏在心底、平常比較少用出來的那幾張', masterSection(result)) +
+      (result.yearStrategy != null ? sectionCard('年度策略', '今年的心態怎麼走（不預測會發生什麼事）', yearSection(result)) : '') +
+      sectionCard('解盤參考順序', '要解一張完整天賦盤，可以照這七步走', stepsSection(), 'section-ref') +
+      sectionCard('整合總結', '把上面全部串成一段話，幫你更懂自己', summarySection(result), 'section-summary') +
       clientReportHTML(result);
 
     out.innerHTML = html;
