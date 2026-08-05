@@ -246,10 +246,10 @@
   }
 
   function masterSection(result) {
-    var m = result.master;
-    var arc = D.MASTER_ARCHETYPE[m] || {};
+    var masters = (result.masterCards && result.masterCards.length)
+      ? result.masterCards
+      : (result.master != null ? [result.master] : []);
     var shadow = result.shadow; // 陣列
-    var relatedComplex = D.COMPLEXES[m] || '';
     var famBadges = result.family.map(function (n) { return talentBadge(n); }).join('');
     var shadowNums = shadow.length ? shadow.join('、') : '無';
     var archOf = D.SHADOW_ARCH || {};
@@ -258,15 +258,21 @@
       return (st ? '<p class="ms-arche">陰' + n + ' ' + st.name + '「' + st.keyword + '」' + (a ? '· 原型：<b>' + a.name + '</b>' : '') + '</p>' : '') +
         (a && a.text ? '<p class="ms-narr">' + esc(a.text) + '</p>' : '');
     }).join('');
-    // 導師情節敘述（主導師）
-    var mn = (D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m]) ? D.MASTER_NARRATIVE[m] : null;
+    // 導師情節敘述（每一張導師牌各自一段）
+    var masterBox = masters.length
+      ? masters.map(function (m) {
+          var t = D.TALENTS[m];
+          var mn = (D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m]) ? D.MASTER_NARRATIVE[m] : null;
+          return '<h4>導師牌 ' + m + '　' + (t ? t.name : '') + '</h4>' +
+            (mn ? '<p class="ms-arche"><b>' + esc(mn.title) + '</b></p><p class="ms-narr">' + esc(mn.text) + '</p>'
+                : '<p class="hint">導師牌＝隱藏在潛意識、只發揮 25~40% 的天賦，可靠刻意練習長成天賦牌。</p>');
+        }).join('<hr class="ms-div">')
+      : '<h4>導師牌 —</h4><p class="hint">未輸入導師牌。</p>';
 
     return '' +
       '<div class="ms-grid">' +
         '<div class="ms-box">' +
-          '<h4>導師牌 ' + m + '　' + (D.TALENTS[m] ? D.TALENTS[m].name : '') + '</h4>' +
-          (mn ? '<p class="ms-arche"><b>' + esc(mn.title) + '</b></p><p class="ms-narr">' + esc(mn.text) + '</p>'
-              : '<p class="hint">導師牌＝隱藏在潛意識、只發揮 25~40% 的天賦，可靠刻意練習長成天賦牌。</p>') +
+          masterBox +
         '</div>' +
         '<div class="ms-box shadow">' +
           '<h4>陰影牌 ' + shadowNums + '</h4>' +
@@ -463,7 +469,7 @@
       '<div class="report-header">' +
         '<h2>' + title + '</h2>' +
         '<p>天賦牌：' + result.talentCards.join('、') +
-          '　·　導師 ' + (result.master != null ? result.master : '—') +
+          '　·　導師 ' + (result.masterCards.length ? result.masterCards.join('、') : '—') +
           '　·　陰影 ' + (result.shadow.length ? result.shadow.join('、') : '無') + '</p>' +
       '</div>' + focusBanner;
 
@@ -564,8 +570,8 @@
   function buildResult() {
     var name = ($('#in-name') ? $('#in-name').value : '').trim();
     var talentCards = parseNums($('#in-talents') ? $('#in-talents').value : '');
-    var masterArr = parseNums($('#in-master') ? $('#in-master').value : '');
-    var master = masterArr.length ? masterArr[0] : null;
+    var masterCards = parseNums($('#in-master') ? $('#in-master').value : '');
+    var master = masterCards.length ? masterCards[0] : null;
     var shadow = parseNums($('#in-shadow') ? $('#in-shadow').value : '');
     var yearArr = parseNums($('#in-year-strategy') ? $('#in-year-strategy').value : '');
     var yearStrategy = yearArr.length ? yearArr[0] : null;
@@ -580,8 +586,8 @@
       energy[e] = { percent: p, count: null, level: p > 25 ? 'high' : (p === 0 ? 'zero' : 'normal') };
     });
 
-    // 完全牌＝導師出現在天賦牌中（導師∩天賦）
-    var completeCards = (master != null && talentCards.indexOf(master) >= 0) ? [master] : [];
+    // 完全牌＝導師出現在天賦牌中（導師∩天賦），多張導師逐一比對
+    var completeCards = masterCards.filter(function (m) { return talentCards.indexOf(m) >= 0; });
     // 比較明顯：同號 ≥2 張（且非完全牌）
     var counts = {};
     talentCards.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; });
@@ -596,7 +602,7 @@
       name: name,
       talentCards: talentCards,
       master: master,
-      masterCards: master != null ? [master] : [],
+      masterCards: masterCards,
       shadow: shadow,
       family: family,
       energy: energy,

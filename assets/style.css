@@ -226,6 +226,8 @@ body{
 .ms-box.shadow{border-color:color-mix(in srgb,var(--fire) 34%,transparent);
   background:color-mix(in srgb,var(--fire) 7%,transparent)}
 .ms-box h4{margin:0 0 8px;font-size:16px;color:var(--gold)}
+.ms-div{border:none;border-top:1px dashed var(--line);margin:14px 0}
+.ms-box h4 + p + .ms-narr,.ms-box .ms-div + h4{margin-top:0}
 .ms-box.shadow h4{color:var(--fire)}
 .ms-box p{margin:4px 0;font-size:13.5px}
 .ms-arche{font-size:14.5px}
