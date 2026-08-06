@@ -90,47 +90,16 @@
       (d.length ? ptsHTML(d, 'pc-desc') : '') + '</div>';
   }
 
-  // focusKeys：本次聚焦的欄位（例如 ['career'] / ['love'] / ['wealth','monetize']）
-  function talentCardDetail(num, roleLabel, focusKeys) {
+  // 詳細解讀只保留：天賦優勢 + 要小心的地方
+  function talentCardDetail(num, roleLabel) {
     var t = D.TALENTS[num];
     if (!t) return '';
-    focusKeys = focusKeys || [];
-    // 該牌是否有此欄位的內容
-    function has(k) {
-      if (k === 'career') return !!formatPoints(t.career).length;
-      if (k === 'love') return !!formatPoints(t.love).length;
-      if (k === 'wealth') return !!(formatPoints(t.wealthMind).length || formatPoints(t.wealthMindDesc).length);
-      if (k === 'monetize') return !!(formatPoints(t.monetize).length || formatPoints(t.monetizeDesc).length);
-      return false;
-    }
-    // 只保留這張牌有內容的聚焦欄位；若都沒有，退回「職場」。
-    var eff = focusKeys.filter(has);
-    if (!eff.length) eff = has('career') ? ['career'] : (has('love') ? ['love'] : []);
-    function foc(k) { return eff.indexOf(k) >= 0; }
-    function tier(k) { return foc(k) ? 'keep' : 'extra'; }
     var color = ELEMENT_COLORS[t.element];
     var tag = (t.numTag ? '（' + t.numTag + '）' : '');
-    var narrative = (D.NARRATIVE && D.NARRATIVE[num]) ? D.NARRATIVE[num] : '';
-    var narrBlock = narrative ? '<div class="tcard-narr keep">' + esc(narrative) + '</div>' : '';
 
-    var blocks = narrBlock +
-      // 精簡也一定顯示：優勢、非健康
+    var blocks =
       sec('天賦優勢', t.advantage, 'adv', 'keep') +
-      sec('要小心的地方（優點用過頭）', t.unhealthy, 'shadow', 'keep') +
-      // 應用類：被聚焦的升為 keep 並高亮
-      sec('用在工作上', t.career, 'app', tier('career'), foc('career')) +
-      sec('用在感情上', t.love, 'app', tier('love'), foc('love')) +
-      pairSec('賺錢的腦袋（可以對標誰）', t.wealthMind, t.wealthMindDesc, 'app', tier('wealth'), foc('wealth')) +
-      pairSec('怎麼把天賦變成錢', t.monetize, t.monetizeDesc, 'app', tier('monetize'), foc('monetize')) +
-      // 其餘一律收在展開內
-      '<div class="tcard-cols extra">' +
-        sec('行為風格', t.astrology, 'astro', 'inline') +
-        sec('像哪個神話人物', t.myth, 'myth', 'inline') +
-      '</div>' +
-      sec('想想你像不像', t.likeness, '', 'extra') +
-      pairSec('潛意識裡的信念', t.subconscious, t.subconsciousDesc, '', 'extra') +
-      sec('補充', t.note, '', 'extra') +
-      sec('一句話總結', t.summary, '', 'extra');
+      sec('要小心的地方（優點用過頭）', t.unhealthy, 'shadow', 'keep');
 
     return '' +
       '<div class="tcard" style="--c:' + color + '">' +
@@ -144,7 +113,6 @@
         '</div>' +
         (roleLabel ? '<div class="tcard-role">' + roleLabel + '</div>' : '') +
         blocks +
-        '<button class="tcard-expand" type="button">展開更多 ▾</button>' +
       '</div>';
   }
 
@@ -347,25 +315,33 @@
       parts.push(name + '，下面用一段話把你整張天賦盤串起來，讓你更懂自己。');
     }
 
-    // 2) 內外整合
+    // 2) 內外整合（內、外分開講；盡量用能量特質，不堆牌名）
     if (hasSplit) {
-      var p2 = '你「心裡怎麼想事情」比較偏' + joinTLabels(inner) + '；' +
-        '而「做出來、給別人看到的你」則是' + joinTLabels(outer) + '的樣子。';
-      var common = inner.filter(function (n) { return outer.indexOf(n) >= 0; });
-      var inEl = {}, outEl = {};
-      inner.forEach(function (n) { var t = D.TALENTS[n]; if (t) inEl[t.element] = 1; });
-      outer.forEach(function (n) { var t = D.TALENTS[n]; if (t) outEl[t.element] = 1; });
-      var sharedEl = Object.keys(inEl).filter(function (e) { return outEl[e]; });
-      if (common.length) {
-        p2 += '其中' + joinTLabels(common) + '對內對外都有，代表這個特質從裡到外都一樣，是你最自然、最不費力就能拿出來的天賦。';
-      } else if (sharedEl.length) {
-        p2 += '整體來說內外都偏「' + sharedEl.join('、') + '」能量，你心裡想的和做出來的方向蠻一致。';
+      var domEl = function (arr) {
+        var c = {};
+        arr.forEach(function (n) { var t = D.TALENTS[n]; if (t) c[t.element] = (c[t.element] || 0) + 1; });
+        return Object.keys(c).sort(function (a, b) { return c[b] - c[a]; })[0];
+      };
+      var inEl = domEl(inner), outEl = domEl(outer);
+      var inTraits = D.ELEMENTS[inEl] ? D.ELEMENTS[inEl].high.traits.slice(0, 3).join('、') : '';
+      var outTraits = D.ELEMENTS[outEl] ? D.ELEMENTS[outEl].high.traits.slice(0, 3).join('、') : '';
+      parts.push('【內在】你自己心裡怎麼運轉：主要是「' + inEl + '」能量在帶——' + inTraits +
+        '。這是你消化事情、跟自己相處的方式。');
+      if (outEl === inEl) {
+        parts.push('【外在】別人平常看到的你：一樣是「' + outEl +
+          '」能量為主，所以你心裡想的和表現出來的方向蠻一致。');
       } else {
-        p2 += '你「心裡想的」和「做出來的」不太一樣；知道這個落差，就比較不會跟自己過不去。';
+        parts.push('【外在】別人平常看到的你：換成「' + outEl + '」能量——' + outTraits +
+          '。這是你跟世界互動、給人看到的樣子。');
       }
-      parts.push(p2);
+      // 已經會在下面「明顯／完全牌」提到的號碼，這裡就不重複點名
+      var hl = (result.completeCards || []).concat((result.prominentCards || []).map(function (c) { return c.num; }));
+      var common = inner.filter(function (n) { return outer.indexOf(n) >= 0 && hl.indexOf(n) < 0; });
+      if (common.length) {
+        parts.push('其中' + joinTLabels(common) + '裡外都有，是你最自然、最不費力就能拿出來的天賦。');
+      }
     } else if (result.talentCards.length) {
-      parts.push('你的天賦是' + joinTLabels(result.talentCards) + '，這些是你最拿手、最能發光的地方。');
+      parts.push('你的天賦最能發光的地方，就是' + joinTLabels(result.talentCards) + '。');
     }
 
     // 3) 完全牌 / 明顯牌
@@ -374,7 +350,9 @@
         '是你的完全牌——導師和天賦剛好同一個號碼，這股能量從心底到表面完全打通，是你最強、最藏不住的一面，一定要拿出來用。');
     } else if (result.prominentCards && result.prominentCards.length) {
       var pc = result.prominentCards.map(function (c) { return tLabel(c.num) + '（' + c.count + ' 張）'; }).join('、');
-      parts.push(pc + '在你的牌裡出現不只一次，等於同一個優點被放大，特別值得好好發揮。');
+      var inBoth = result.prominentCards.some(function (c) { return inner.indexOf(c.num) >= 0 && outer.indexOf(c.num) >= 0; });
+      parts.push(pc + '在你的牌裡出現不只一次，等於同一個優點被放大' +
+        (inBoth ? '，而且內在、外在都有，是你最自然就能發揮的天賦' : '') + '，特別值得好好發揮。');
     }
 
     // 4) 導師 + 陰影
@@ -719,27 +697,19 @@
           '　·　陰影 ' + (result.shadow.length ? result.shadow.join('、') : '無') + '</p>' +
       '</div>' + focusBanner;
 
-    // 詳細解說：有分內外→依位置逐張；否則不重複列出
+    // 詳細解說：每個號碼只列一張（重複的合併），標出屬於內在／外在
     var detailCards = '';
-    if (hasSplit) {
-      inner.forEach(function (n, i) {
-        detailCards += talentCardDetail(n, '內在 · 第 ' + (i + 1) + ' 張', focusKeys);
-      });
-      outer.forEach(function (n, i) {
-        detailCards += talentCardDetail(n, '外在 · 第 ' + (inner.length + i + 1) + ' 張', focusKeys);
-      });
-    } else {
-      var seen = {};
-      result.talentCards.forEach(function (n) {
-        if (seen[n]) return;
-        seen[n] = 1;
-        var label = counts[n] > 1 ? '天賦牌 · 出現 ' + counts[n] + ' 張（優勢加成）' : '天賦牌';
-        detailCards += talentCardDetail(n, label, focusKeys);
-      });
-    }
-    var detailSub = hasSplit
-      ? '內在 ' + inner.length + ' 張 + 外在 ' + outer.length + ' 張（說明取自 MMT上課整理）'
-      : '每張天賦牌的完整解讀（說明取自 MMT上課整理）';
+    var seenDetail = {};
+    result.talentCards.forEach(function (n) {
+      if (seenDetail[n]) return;
+      seenDetail[n] = 1;
+      var inIn = inner.indexOf(n) >= 0;
+      var inOut = outer.indexOf(n) >= 0;
+      var where = hasSplit ? (inIn && inOut ? '內在＋外在' : (inIn ? '內在' : (inOut ? '外在' : ''))) : '';
+      var label = where + (counts[n] > 1 ? '（' + counts[n] + ' 張，優勢加成）' : '');
+      detailCards += talentCardDetail(n, label || null);
+    });
+    var detailSub = '每個天賦號碼的優勢與要小心的地方（重複的只列一次）';
 
     var html =
       header +
@@ -762,7 +732,7 @@
 
     out.innerHTML = html;
     out.classList.add('has-report');
-    out.classList.toggle('concise', opts.level !== 'full');
+    out.classList.remove('concise');
     var pb = document.getElementById('btn-print');
     if (pb) pb.addEventListener('click', function () {
       document.body.classList.remove('print-client');
@@ -802,11 +772,6 @@
       });
     });
     out.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function currentLevel() {
-    var r = document.querySelector('input[name="level"]:checked');
-    return r ? r.value : 'concise';
   }
 
   // ---- 由輸入值建立 result 物件（不做任何天賦盤計算，只解析數字）----
@@ -907,7 +872,7 @@
       return;
     }
     var result = buildResult();
-    render(result, { level: currentLevel() });
+    render(result, {});
     try {
       localStorage.setItem('mmt:manual', JSON.stringify({
         name: $('#in-name').value, inner: $('#in-inner').value, outer: $('#in-outer').value,
@@ -942,12 +907,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     restoreLast();
     $('#btn-generate').addEventListener('click', onGenerate);
-    // 顯示詳細度切換：若已有報表，即時重繪
-    Array.prototype.forEach.call(document.querySelectorAll('input[name="level"]'), function (r) {
-      r.addEventListener('change', function () {
-        if ($('#report').classList.contains('has-report')) onGenerate();
-      });
-    });
     // 各輸入欄按 Enter 直接生成
     ['#in-inner', '#in-outer', '#in-master', '#in-shadow', '#in-year-strategy', '#in-year-label'].forEach(function (sel) {
       var n = $(sel);
