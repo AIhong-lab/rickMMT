@@ -245,6 +245,20 @@ body{
 .year-head b{color:var(--gold);font-size:22px}
 .year-body p{margin:6px 0;font-size:14px}
 
+/* 白話報告（純文章視圖） */
+#plain-report{display:none}
+body.view-plain #report > *{display:none}
+body.view-plain #report > #plain-report{display:block}
+.pr-actions{display:flex;gap:10px;justify-content:flex-end;margin-bottom:18px}
+.pr-article{max-width:760px;margin:0 auto;font-size:16.5px;line-height:2.05}
+.pr-article h2{font-size:25px;text-align:center;letter-spacing:1px;margin:0 0 22px;color:var(--gold)}
+.pr-article p{margin:0 0 16px}
+.pr-article .pr-year{padding:12px 15px;border:1px solid color-mix(in srgb,var(--gold) 30%,transparent);
+  border-radius:8px;background:color-mix(in srgb,var(--gold) 6%,transparent);margin:18px 0}
+.pr-article .pr-final{margin-top:10px;padding:14px 16px;border-left:3px solid var(--gold);
+  border-radius:8px;background:color-mix(in srgb,var(--gold) 10%,transparent)}
+.pr-article .pr-final b,.pr-article .pr-year b{color:var(--gold)}
+
 /* 整合總結 */
 .report-section.section-summary{border-color:color-mix(in srgb,var(--gold) 42%,var(--line));
   background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 7%,transparent),transparent)}
@@ -393,6 +407,18 @@ body{
   body.print-client #report > *{display:none !important}
   body.print-client #report > #client-report{display:block !important}
   body.print-client .container{padding:0 !important}
+
+  /* 白話報告模式：只印白話文章 */
+  body.print-plain #report{margin:0 !important}
+  body.print-plain #report > *{display:none !important}
+  body.print-plain #report > #plain-report{display:block !important}
+  body.print-plain #plain-report .no-print{display:none !important}
+  body.print-plain .container{padding:0 !important}
+  #plain-report .pr-article{max-width:100%;font-size:12.5pt;line-height:1.95;color:#1a1a2a}
+  #plain-report .pr-article h2{color:#1a1a2a}
+  #plain-report .pr-final{background:#faf7ee !important;border-left:3px solid #c8a24a !important}
+  #plain-report .pr-final b,#plain-report .pr-year b{color:#7a5a12 !important}
+  #plain-report .pr-year{background:#faf7ee !important;border-color:#e7dcbd !important}
   @page{margin:12mm}
 }
 

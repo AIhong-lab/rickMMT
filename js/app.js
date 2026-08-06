@@ -414,6 +414,130 @@
       '</div>';
   }
 
+  // 取前 n 句（以。！？斷句）
+  function firstSentences(text, n) {
+    if (!text) return '';
+    var s = String(text).trim();
+    var parts = s.split(/(?<=[。！？])/).filter(function (x) { return x.trim(); });
+    return parts.slice(0, n).join('').trim();
+  }
+  // 去掉導師／陰影敘述開頭的「導1・作品集情節　」「陰19・英雄原型（對應導1）　」標籤前綴
+  function cleanNarr(text, n) {
+    var s = String(text || '').replace(/^[^　]*　/, '');
+    s = s.replace(/^導\d+/, '他').replace(/^陰\d+/, '他');
+    return firstSentences(s, n || 2);
+  }
+
+  // ---- 白話報告：把整張盤自動組成一篇順順的文章 ----
+  function plainReportHTML(result) {
+    var order = ['風', '火', '水', '土'];
+    var name = result.name ? result.name : '你';
+    var E = D.ELEMENTS;
+    var inner = result.inner || [];
+    var outer = result.outer || [];
+    var hasSplit = inner.length && outer.length;
+    var hasEnergy = order.some(function (e) { return result.energy[e].percent > 0; });
+    var top = order.slice().sort(function (a, b) { return result.energy[b].percent - result.energy[a].percent; })[0];
+    var zeros = order.filter(function (e) { return result.energy[e].level === 'zero'; });
+    var paras = [];
+
+    function sd(n) { var t = D.TALENTS[n]; return t ? t.name + '「' + t.keyword + '」' : ('' + n); }
+    function distinct(arr) { var s = {}, o = []; arr.forEach(function (n) { if (!s[n]) { s[n] = 1; o.push(n); } }); return o; }
+
+    // 開場 + 主導能量
+    if (hasEnergy) {
+      var te = E[top];
+      paras.push(name + '，你是一個很吃「' + te.pursue + '」的人。你的' + top + '能量' +
+        (result.energy[top].percent >= 50 ? '非常高' : '偏高') + '（' + result.energy[top].percent + '%），代表你天生就是「' +
+        te.person + '」——' + te.high.traits.slice(0, 4).join('、') + '。' + te.high.task);
+    } else {
+      paras.push(name + '，下面用白話幫你把整張天賦盤讀一遍。');
+    }
+
+    // 0 能量
+    if (hasEnergy && zeros.length) {
+      zeros.forEach(function (e) {
+        var ze = E[e];
+        paras.push('比較特別的是，你的' + e + '能量是 0。' + e + '代表「' + ze.pursue +
+          '」，你在這一塊比較沒有動力，通常要靠身邊的人幫你補：' + ze.zero.task);
+      });
+    }
+
+    // 最明顯 / 完全牌
+    var star = null;
+    if (result.completeCards && result.completeCards.length) star = result.completeCards[0];
+    else if (result.prominentCards && result.prominentCards.length) star = result.prominentCards[0].num;
+    if (star != null) {
+      var isComplete = result.completeCards && result.completeCards.indexOf(star) >= 0;
+      var cnt = 0; result.talentCards.forEach(function (n) { if (n === star) cnt++; });
+      var raw = D.NARRATIVE && D.NARRATIVE[star] ? D.NARRATIVE[star] : '';
+      var narr = raw ? firstSentences(raw.split('｜').pop(), 2) : '';
+      paras.push('你最明顯的天賦是 ' + sd(star) + '，' +
+        (isComplete ? '它是你的完全牌（導師和天賦剛好同一號），能量從裡到外完全打通，是你最強、最藏不住的一面。'
+                    : '它在你的牌裡出現了 ' + cnt + ' 次，是被放大的優勢，也是你最自然、最不費力就能拿出來的能力。') +
+        narr + '這股能量一定要用出來，不然會很悶。');
+    }
+
+    // 內外其他天賦
+    if (hasSplit) {
+      paras.push('整體來看，你「心裡怎麼想事情」比較偏' + distinct(inner).map(sd).join('、') +
+        '；而「做出來、給別人看到的你」則是' + distinct(outer).map(sd).join('、') + '。把這兩面合起來，就是完整的你。');
+    } else if (result.talentCards.length) {
+      paras.push('你的天賦組合是' + distinct(result.talentCards).map(sd).join('、') + '，這些是你最拿手、最能發光的地方。');
+    }
+
+    // 導師
+    var masters = result.masterCards || [];
+    masters.forEach(function (m) {
+      var mn = D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m];
+      var t = D.TALENTS[m];
+      var snip = mn ? cleanNarr(mn.text, 2) : '';
+      paras.push('你可以再進步的方向，藏在導師 ' + m + (t ? ' ' + t.name : '') + '裡' +
+        (mn ? '（' + mn.title + '）' : '') + '。' + (snip || '導師是還沒長好的潛力，多練就補得起來。'));
+    });
+
+    // 陰影
+    if (result.shadow && result.shadow.length) {
+      result.shadow.forEach(function (n) {
+        var a = D.SHADOW_ARCH && D.SHADOW_ARCH[n];
+        var t = D.TALENTS[n];
+        var snip = a ? cleanNarr(a.text, 2) : '';
+        paras.push('你的陰影是 ' + n + (t ? ' ' + t.name : '') + (a ? '（' + a.name + '原型）' : '') + '。' + snip +
+          '陰影練不掉，只能跟它和好；願意看懂它，反而會讓你走得更遠。');
+      });
+    }
+
+    // 年度策略
+    var yearLine = '';
+    if (result.yearStrategy != null) {
+      var ys = D.YEAR_STRATEGY && D.YEAR_STRATEGY[result.yearStrategy];
+      if (ys) yearLine = '<p class="pr-year"><b>' + (result.yearLabel ? esc(result.yearLabel) + ' ' : '') +
+        '今年的心態方向：</b>' + esc(firstSentences(ys.text, 2)) + '</p>';
+    }
+
+    // 一句話收尾
+    var closing = '<b>一句話：</b>' + esc(name) + '，你是一個' +
+      (hasEnergy ? '靠「' + E[top].pursue + '」' : '') +
+      (star != null ? '、以' + esc(sd(star)) + '為招牌' : '') +
+      '的人。順著你最強的能量走、把拿手的天賦做到極致，' +
+      (masters.length ? '再往導師的方向多練、' : '') +
+      (result.shadow && result.shadow.length ? '跟陰影和好，' : '') +
+      '你會越來越活出真正的自己。';
+
+    return '<div id="plain-report">' +
+      '<div class="pr-actions no-print">' +
+        '<button id="btn-back-detail" class="btn-print">↩ 回到詳細報告</button>' +
+        '<button id="btn-print-plain" class="btn-print btn-client">🖨️ 列印白話報告</button>' +
+      '</div>' +
+      '<article class="pr-article">' +
+        '<h2>' + (result.name ? esc(result.name) : '你') + '的天賦報告</h2>' +
+        paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') +
+        yearLine +
+        '<p class="pr-final">' + closing + '</p>' +
+      '</article>' +
+    '</div>';
+  }
+
   function sectionCard(title, subtitle, bodyHTML, cls) {
     return '' +
       '<section class="report-section ' + (cls || '') + '">' +
@@ -620,6 +744,7 @@
     var html =
       header +
       '<div class="report-actions">' +
+        '<button id="btn-plain" class="btn-print btn-plain">📖 白話報告</button>' +
         '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
         '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
       '</div>' +
@@ -632,6 +757,7 @@
       (result.yearStrategy != null ? sectionCard('年度策略', '今年的心態怎麼走（不預測會發生什麼事）', yearSection(result)) : '') +
       sectionCard('解盤參考順序', '要解一張完整天賦盤，可以照這七步走', stepsSection(), 'section-ref') +
       sectionCard('整合總結', '把上面全部串成一段話，幫你更懂自己', summarySection(result), 'section-summary') +
+      plainReportHTML(result) +
       clientReportHTML(result);
 
     out.innerHTML = html;
@@ -647,7 +773,26 @@
       document.body.classList.add('print-client');
       window.print();
     });
-    window.onafterprint = function () { document.body.classList.remove('print-client'); };
+    // 白話報告：切換到純文章視圖
+    var plb = document.getElementById('btn-plain');
+    if (plb) plb.addEventListener('click', function () {
+      document.body.classList.add('view-plain');
+      out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    var bdb = document.getElementById('btn-back-detail');
+    if (bdb) bdb.addEventListener('click', function () {
+      document.body.classList.remove('view-plain');
+      out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    var ppb = document.getElementById('btn-print-plain');
+    if (ppb) ppb.addEventListener('click', function () {
+      document.body.classList.add('print-plain');
+      window.print();
+    });
+    window.onafterprint = function () {
+      document.body.classList.remove('print-client');
+      document.body.classList.remove('print-plain');
+    };
     // 每張牌的「展開更多／收合」
     Array.prototype.forEach.call(out.querySelectorAll('.tcard-expand'), function (btn) {
       btn.addEventListener('click', function () {
