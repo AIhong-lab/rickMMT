@@ -156,11 +156,17 @@
   }
 
   // 家族關係區塊
-  function familySection(result) {
-    var groups = result.familyGroups || [];
+  // 只顯示：完整家族，或「三位一體（3張）家族拿到 2 張」
+  function familyGroupsToShow(result) {
+    return (result.familyGroups || []).filter(function (g) {
+      return g.complete || (g.members.length === 3 && g.present.length === 2);
+    });
+  }
+
+  function familySection(groups) {
     var FAM = D.FAMILIES || {};
     var TYPE = D.FAMILY_TYPE_DESC || {};
-    if (!groups.length) return '<p class="hint">未觸及任何家族。</p>';
+    if (!groups.length) return '';
     return groups.map(function (g) {
       var f = FAM[g.id] || {};
       var badges = g.members.map(function (n) {
@@ -721,7 +727,12 @@
       sectionCard('牌陣總覽', '你的天賦牌、導師、陰影一次看', overviewBadges) +
       sectionCard('四大能量', '超過 25% 算高能量，0% 算沒有這個能量', energySection(result.energy)) +
       sectionCard('完全牌', '導師和天賦剛好是同一個號碼，這股能量最強', completeSection(result)) +
-      sectionCard('家族關係', '尾數加起來相同的號碼，會湊成一個家族', '<div class="fam-wrap">' + familySection(result) + '</div>') +
+      (function () {
+        var fg = familyGroupsToShow(result);
+        return fg.length
+          ? sectionCard('家族關係', '只列完整家族，或三位一體家族拿到兩張', '<div class="fam-wrap">' + familySection(fg) + '</div>')
+          : '';
+      })() +
       sectionCard('天賦牌 · 詳細解讀', detailSub, '<div class="tcards">' + detailCards + '</div>') +
       sectionCard('導師 · 陰影 · 家族牌', '藏在心底、平常比較少用出來的那幾張', masterSection(result)) +
       (result.yearStrategy != null ? sectionCard('年度策略', '今年的心態怎麼走（不預測會發生什麼事）', yearSection(result)) : '') +
