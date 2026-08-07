@@ -2,9 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MMT 天賦原理 · 自動生成天賦盤</title>
-  <meta name="description" content="輸入生日，自動生成 MMT 天賦原理個人分析：六張天賦牌、導師／陰影、四大能量與年度策略。">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MMT天賦盤">
+  <meta name="theme-color" content="#0e1020">
+  <title>MMT 天賦原理 · 天賦盤解讀</title>
+  <meta name="description" content="輸入排好的天賦盤數字，自動生成 MMT 天賦原理個人解讀：天賦牌、導師／陰影、四大能量與年度策略。">
   <style>
 /* ================= MMT 天賦原理 — 樣式 ================= */
 :root{
@@ -15,7 +20,8 @@
   --radius:16px; --shadow:0 18px 50px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*{-webkit-tap-highlight-color:rgba(0,0,0,0)}
 body{
   margin:0; color:var(--text);
   font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
@@ -59,7 +65,7 @@ body{
 .field-q{margin-top:14px}
 .field-q input{
   background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
-  padding:12px 14px;font-size:15px;font-family:inherit;width:100%;
+  padding:12px 14px;font-size:16px;font-family:inherit;width:100%;
 }
 .field-q input:focus{outline:none;border-color:var(--accent)}
 .field-q input::placeholder{color:#6b7098}
@@ -67,7 +73,7 @@ body{
 .form-grid-3{grid-template-columns:1fr 1fr 1fr;margin-top:14px}
 .field-t input{
   background:var(--panel-solid);color:var(--text);border:1px solid var(--line);border-radius:10px;
-  padding:11px 12px;font-size:15px;font-family:inherit;width:100%;
+  padding:11px 12px;font-size:16px;font-family:inherit;width:100%;
 }
 .field-t input:focus{outline:none;border-color:var(--accent)}
 .field-t input::placeholder{color:#6b7098}
@@ -77,7 +83,7 @@ body{
 .energy-input-grid label{display:flex;align-items:center;gap:8px;background:var(--panel-solid);
   border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .energy-input-grid span{font-size:14px;white-space:nowrap;color:var(--text)}
-.energy-input-grid input{background:transparent;border:none;color:var(--text);font-size:15px;
+.energy-input-grid input{background:transparent;border:none;color:var(--text);font-size:16px;
   font-family:inherit;width:100%;min-width:0}
 .energy-input-grid input:focus{outline:none}
 .energy-input-grid input::placeholder{color:#6b7098}
@@ -520,10 +526,10 @@ body.view-plain #report > #plain-report{display:block}
       <div class="energy-input">
         <span class="energy-input-label">四大能量比例（%）</span>
         <div class="energy-input-grid">
-          <label><span>🍃 風</span><input id="in-e-wind" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>🔥 火</span><input id="in-e-fire" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>💧 水</span><input id="in-e-water" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>🍃 風</span><input id="in-e-wind" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>🔥 火</span><input id="in-e-fire" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>💧 水</span><input id="in-e-water" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
         </div>
       </div>
       <label class="field field-q">
@@ -538,6 +544,7 @@ body.view-plain #report > #plain-report{display:block}
     <footer class="site-footer">
       <p>本工具依個人上課整理（MMT1階-直版天賦原理）製作，僅供自我覺察與個人使用。</p>
       <p class="ip">天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。</p>
+      <p class="ip">📱 iPad 離線使用：把本檔存到 iPad，用可執行網頁的 App（如 Documents by Readdle）開啟即可，全程免網路。</p>
     </footer>
   </main>
   <script>

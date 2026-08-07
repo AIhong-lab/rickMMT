@@ -2,10 +2,14 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MMT 天賦原理 · 自動生成天賦盤</title>
-  <meta name="description" content="輸入生日，自動生成 MMT 天賦原理個人分析：六張天賦牌、導師／陰影、四大能量與年度策略。">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MMT天賦盤">
+  <meta name="theme-color" content="#0e1020">
+  <title>MMT 天賦原理 · 天賦盤解讀</title>
+  <meta name="description" content="輸入排好的天賦盤數字，自動生成 MMT 天賦原理個人解讀：天賦牌、導師／陰影、四大能量與年度策略。">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -56,10 +60,10 @@
       <div class="energy-input">
         <span class="energy-input-label">四大能量比例（%）</span>
         <div class="energy-input-grid">
-          <label><span>🍃 風</span><input id="in-e-wind" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>🔥 火</span><input id="in-e-fire" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>💧 水</span><input id="in-e-water" type="number" min="0" max="100" placeholder="0"></label>
-          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" min="0" max="100" placeholder="0"></label>
+          <label><span>🍃 風</span><input id="in-e-wind" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>🔥 火</span><input id="in-e-fire" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>💧 水</span><input id="in-e-water" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
+          <label><span>⛰️ 土</span><input id="in-e-earth" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="0"></label>
         </div>
       </div>
       <label class="field field-q">
@@ -74,6 +78,7 @@
     <footer class="site-footer">
       <p>本工具依個人上課整理（MMT1階-直版天賦原理）製作，僅供自我覺察與個人使用。</p>
       <p class="ip">天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。</p>
+      <p class="ip">📱 iPad 離線使用：把本檔存到 iPad，用可執行網頁的 App（如 Documents by Readdle）開啟即可，全程免網路。</p>
     </footer>
   </main>
 
