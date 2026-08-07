@@ -1476,16 +1476,19 @@ body.view-plain #report > #plain-report{display:block}
       (d.length ? ptsHTML(d, 'pc-desc') : '') + '</div>';
   }
 
-  // 詳細解讀只保留：天賦優勢 + 要小心的地方
+  // 詳細解讀：直接用敘述版 v1.5 的整段文字
   function talentCardDetail(num, roleLabel) {
     var t = D.TALENTS[num];
     if (!t) return '';
     var color = ELEMENT_COLORS[t.element];
     var tag = (t.numTag ? '（' + t.numTag + '）' : '');
-
-    var blocks =
-      sec('天賦優勢', t.advantage, 'adv', 'keep') +
-      sec('要小心的地方（優點用過頭）', t.unhealthy, 'shadow', 'keep');
+    var narrative = (D.NARRATIVE && D.NARRATIVE[num]) ? D.NARRATIVE[num] : '';
+    // 去掉開頭「6號・演繹家（舞台工作者）｜」（卡片標題已顯示），保留占星×神話與內文
+    var body = narrative.replace(/^\s*\d+號・[^｜]*｜\s*/, '');
+    var narrBlock = body
+      ? '<div class="tcard-narr keep">' + esc(body) + '</div>'
+      : (sec('天賦優勢', t.advantage, 'adv', 'keep') +
+         sec('要小心的地方（優點用過頭）', t.unhealthy, 'shadow', 'keep'));
 
     return '' +
       '<div class="tcard" style="--c:' + color + '">' +
@@ -1498,7 +1501,7 @@ body.view-plain #report > #plain-report{display:block}
           '<span class="tcard-tag">' + ELEMENT_EMOJI[t.element] + t.element + '能量 · ' + t.face + '</span>' +
         '</div>' +
         (roleLabel ? '<div class="tcard-role">' + roleLabel + '</div>' : '') +
-        blocks +
+        narrBlock +
       '</div>';
   }
 
@@ -2101,7 +2104,7 @@ body.view-plain #report > #plain-report{display:block}
       var label = where + (counts[n] > 1 ? '（' + counts[n] + ' 張，優勢加成）' : '');
       detailCards += talentCardDetail(n, label || null);
     });
-    var detailSub = '每個天賦號碼的優勢與要小心的地方（重複的只列一次）';
+    var detailSub = '每張天賦牌的說明（取自敘述版 v1.5，重複的只列一次）';
 
     var html =
       header +
