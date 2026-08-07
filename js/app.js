@@ -299,7 +299,7 @@
     arr.forEach(function (n) { if (!seen[n]) { seen[n] = 1; out.push(tLabel(n)); } });
     return out.join('、');
   }
-  function summarySection(result) {
+  function summaryParts(result) {
     var order = ['風', '火', '水', '土'];
     var name = result.name ? result.name : '你';
     var inner = result.inner || [];
@@ -393,7 +393,11 @@
       (strongest != null ? '、最招牌的天賦是' + tLabel(strongest) : '') +
       '的人。順著你最強的能量走、把拿手的天賦做到極致，再往導師的方向多練、跟陰影和好，你會越來越活出真正的自己。';
     parts.push(closing);
+    return parts;
+  }
 
+  function summarySection(result) {
+    var parts = summaryParts(result);
     return '<div class="summary-box">' +
       parts.map(function (p, i) {
         return '<p' + (i === parts.length - 1 ? ' class="summary-final"' : '') + '>' + p + '</p>';
@@ -628,6 +632,29 @@
         '</div>';
     }).join('');
 
+    // 導師牌 · 成長方向
+    var masterBlocks = (result.masterCards || []).map(function (m) {
+      var t = D.TALENTS[m]; if (!t) return '';
+      var mn = D.MASTER_NARRATIVE && D.MASTER_NARRATIVE[m];
+      var gist = mn ? firstSentences(cleanNarr(mn.text, 3), 1) : '';
+      var pr = mn && mn.text.match(/練習方向[^。]*。/);
+      return '<div class="cr-line"><b>導師 ' + m + ' ' + t.name + (mn ? '「' + esc(mn.title) + '」' : '') + '</b>' +
+        (gist || pr ? '<span>' + esc(gist) + (pr ? ' ' + esc(pr[0]) : '') + '</span>' : '') + '</div>';
+    }).join('');
+    // 陰影牌 · 要和解的功課
+    var shadowBlocks = (result.shadow || []).map(function (n) {
+      var t = D.TALENTS[n]; var a = D.SHADOW_ARCH && D.SHADOW_ARCH[n];
+      var task = a && a.text.match(/功課[^。]*。/);
+      var gold = a && a.text.match(/這份陰影的黃金面[：:][^。]*。/);
+      var body = (task ? task[0] : (a ? firstSentences(cleanNarr(a.text), 1) : '')) + (gold ? ' ' + gold[0] : '');
+      return '<div class="cr-line"><b>陰 ' + n + (t ? ' ' + t.name : '') + (a ? '（' + a.name + '原型）' : '') + '</b>' +
+        (body ? '<span>' + esc(body) + '</span>' : '') + '</div>';
+    }).join('');
+    // 整合總結（與網頁版同一段文字）
+    var summaryBlocks = summaryParts(result).map(function (p, i, arr) {
+      return '<p class="cr-sum-p' + (i === arr.length - 1 ? ' cr-sum-final' : '') + '">' + p + '</p>';
+    }).join('');
+
     return '<div id="client-report">' +
       '<div class="cr-head"><div class="cr-brand">✦ 天賦原理 · 個人天賦報告</div>' +
         '<div class="cr-date">' + esc(result.name || '個人天賦報告') + '</div></div>' +
@@ -637,6 +664,9 @@
       '<div class="cr-sec"><h2>四大能量分佈</h2>' + energyBars +
         '<p class="cr-enote">' + energyNote + '</p></div>' +
       '<div class="cr-sec"><h2>你的核心天賦</h2><div class="cr-talents">' + talentBlocks + '</div></div>' +
+      (masterBlocks ? '<div class="cr-sec"><h2>導師牌 · 成長方向</h2>' + masterBlocks + '</div>' : '') +
+      (shadowBlocks ? '<div class="cr-sec"><h2>陰影牌 · 要和解的功課</h2>' + shadowBlocks + '</div>' : '') +
+      '<div class="cr-sec"><h2>整合總結</h2>' + summaryBlocks + '</div>' +
       '<div class="cr-foot">本報告依 MMT 天賦原理製作，作為自我覺察與潛能發展參考。</div>' +
       '</div>';
   }

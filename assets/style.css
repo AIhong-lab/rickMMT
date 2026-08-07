@@ -462,3 +462,11 @@ body.view-plain #report > #plain-report{display:block}
 .crt-dir b{color:#8a6d1f}
 .cr-foot{margin-top:13px;padding-top:8px;border-top:1px solid #ddd;
   font-size:11px;color:#888;text-align:center}
+/* 客戶版：導師 / 陰影 / 整合總結 */
+.cr-line{margin:7px 0;padding:8px 11px;border:1px solid #e5e5e5;border-radius:8px;background:#fff;break-inside:avoid}
+.cr-line b{display:block;color:#7a5a12;font-size:13px;margin-bottom:2px}
+.cr-line span{font-size:12.5px;color:#3a3a3a;line-height:1.65}
+.cr-sum-p{font-size:12.8px;line-height:1.72;color:#333;margin:0 0 8px}
+.cr-sum-p b{color:#7a5a12}
+.cr-sum-final{margin-top:4px;padding:9px 11px;border-left:3px solid var(--gold);
+  border-radius:6px;background:#faf7ee}
