@@ -10,6 +10,8 @@
   <meta name="theme-color" content="#0e1020">
   <title>MMT 天賦原理 · 天賦盤解讀</title>
   <meta name="description" content="輸入排好的天賦盤數字，自動生成 MMT 天賦原理個人解讀：天賦牌、導師／陰影、四大能量與年度策略。">
+  <!-- 圖卡用字型（Noto Sans TC）：離線時自動退回系統字型 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap">
   <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -75,6 +77,9 @@
 
     <div id="report" class="report"></div>
 
+    <!-- 圖卡產生器（生成報告後由「🎴 製作圖卡」開啟；不影響既有功能） -->
+    <section id="card-studio" class="card-studio" hidden></section>
+
     <footer class="site-footer">
       <p>本工具依個人上課整理（MMT1階-直版天賦原理）製作，僅供自我覺察與個人使用。</p>
       <p class="ip">天賦原理課程原始內容之智慧財產權屬「水盈盈企業管理顧問有限公司」。</p>
@@ -82,9 +87,12 @@
     </footer>
   </main>
 
+  <!-- PNG 匯出（僅圖卡功能使用；已內嵌，離線也可用） -->
+  <script src="js/vendor/html-to-image.js"></script>
   <script src="js/data.js"></script>
   <script src="js/talents.js"></script>
   <script src="js/v15.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/cards.js"></script>
 </body>
 </html>

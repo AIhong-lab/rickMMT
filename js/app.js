@@ -673,6 +673,7 @@
 
   function render(result, opts) {
     opts = opts || {};
+    window.__mmtLastResult = result;   // 供圖卡產生器自動預填
     var topic = detectTopic(opts.question);
     var focusKeys = topic.focus;
     var out = $('#report');
@@ -753,6 +754,7 @@
     var html =
       header +
       '<div class="report-actions">' +
+        '<button id="btn-cards" class="btn-print btn-cards">🎴 製作圖卡</button>' +
         '<button id="btn-plain" class="btn-print btn-plain">📖 白話報告</button>' +
         '<button id="btn-client" class="btn-print btn-client">📄 輸出客戶版 PDF</button>' +
         '<button id="btn-print" class="btn-print">🖨️ 列印完整版</button>' +
