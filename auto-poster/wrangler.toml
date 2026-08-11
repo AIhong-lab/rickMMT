@@ -1,0 +1,24 @@
+name = "rickmmt-autopost"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+# —— 排程（Cloudflare cron 跑在 UTC，已換算成台灣時間）——
+# 台灣 09:00 產文批次；12:00 / 18:00 / 21:00 各發一篇
+[triggers]
+crons = [
+  "0 1 * * *",   # TW 09:00 產文
+  "0 4 * * *",   # TW 12:00 發文
+  "0 10 * * *",  # TW 18:00 發文
+  "0 13 * * *",  # TW 21:00 發文
+]
+
+# —— D1 資料庫（內容池）——
+# 建立後把 wrangler d1 create 回傳的 database_id 貼進來
+[[d1_databases]]
+binding = "DB"
+database_name = "rickmmt-autopost"
+database_id = "在此貼上_wrangler_d1_create_回傳的_id"
+
+# 非機密設定可放這；機密（token / api key）一律用 wrangler secret put，別寫這裡
+[vars]
+# （目前設定都在 src/config.js）

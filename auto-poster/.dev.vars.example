@@ -1,0 +1,19 @@
+# 本機測試用的環境變數範本。
+# 複製成 .dev.vars（不要進版控），填入實際值。
+# 正式部署時改用：wrangler secret put <名稱>
+
+# —— Claude API（產文）——
+ANTHROPIC_API_KEY=sk-ant-...
+
+# —— LINE Messaging API（審核通道）——
+LINE_CHANNEL_ACCESS_TOKEN=
+LINE_CHANNEL_SECRET=
+LINE_ADMIN_USER_ID=            # 你自己的 LINE userId（發草稿給你）
+
+# —— Threads（脆）——
+THREADS_USER_ID=
+THREADS_ACCESS_TOKEN=
+
+# —— Facebook 粉專 ——
+FB_PAGE_ID=
+FB_PAGE_ACCESS_TOKEN=
