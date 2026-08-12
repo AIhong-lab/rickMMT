@@ -73,11 +73,12 @@ npm run deploy
 
 ## 拿到各項憑證的快速指引
 
-**LINE_ADMIN_USER_ID**：先把你的官方帳號加為好友，隨便傳一句話，
-webhook 收到的 `events[].source.userId` 就是你的 id（可暫時在 `handleLineEvents` 印 log 抓）。
+**LINE_ADMIN_USER_ID**：部署並設好 webhook 後，把官方帳號加好友，
+**隨便傳一句話給它，它會直接回你 userId**，複製貼進 secret 即可（不用去翻 log）。
 
 **THREADS_ACCESS_TOKEN**：Meta App → Threads → 產生長效權杖（約 60 天）。
-下一階段我會加「自動續期」的 cron，免得你每兩個月手動換。
+系統每週一自動幫你續期（存進 D1），你**不用每兩個月手動換**；
+只有續期失敗時才會 LINE 通知你重產一次。
 
 **FB_PAGE_ACCESS_TOKEN**：Graph API Explorer 取短效 → 換長效粉專權杖，
 或用系統使用者（System User）發永久權杖（推薦，最穩）。
@@ -98,10 +99,10 @@ webhook 收到的 `events[].source.userId` 就是你的 id（可暫時在 `handl
 
 ## 目前狀態與下一階段
 
-**已完成（骨架）**：產文引擎、LINE 兩鍵審核、內容池、12/18/21 排程雙發、失敗重試與回報、補稿提醒。
+**已完成（骨架）**：產文引擎、LINE 兩鍵審核、內容池、12/18/21 排程雙發、失敗重試與回報、補稿提醒、**Threads token 每週自動續期**、**傳訊息即回 userId 的上手小工具**。
 
 **下一階段可加**：
-- Threads token 自動續期 cron
 - LINE 回一句話叫 AI「照這意思改」的微調鍵
 - 發文成效回收（讚數/互動）回報
 - 圖卡自動產生並帶圖發文
+- FB 系統使用者永久權杖（免續期）

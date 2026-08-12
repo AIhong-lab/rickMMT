@@ -2,12 +2,14 @@
 //  Threads（脆）發文 — Meta 官方 Threads API，兩段式：建容器 -> 發布
 // ============================================================
 
+import { getThreadsToken } from './tokens.js';
+
 const BASE = 'https://graph.threads.net/v1.0';
 
 // text：貼文文字；imageUrl：選填，公開可存取的圖片網址
 export async function publishThreads(env, text, imageUrl) {
   const uid = env.THREADS_USER_ID;
-  const token = env.THREADS_ACCESS_TOKEN;
+  const token = await getThreadsToken(env); // 優先用自動續期後的 token
 
   // Step 1：建立媒體容器
   const createParams = new URLSearchParams({ access_token: token });

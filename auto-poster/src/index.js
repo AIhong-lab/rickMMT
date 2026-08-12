@@ -6,6 +6,7 @@
 import { verifySignature, parsePostback, reply } from './line.js';
 import { approve, reject, getPost } from './db.js';
 import { runGeneration, runPublishSlot } from './scheduler.js';
+import { runTokenMaintenance } from './tokens.js';
 
 export default {
   // ---------- HTTP：LINE webhook ----------
@@ -37,8 +38,11 @@ export default {
     // "0 4 * * *"  = 台灣 12:00 → 發文
     // "0 10 * * *" = 台灣 18:00 → 發文
     // "0 13 * * *" = 台灣 21:00 → 發文
+    // "0 2 * * 1"  = 每週一台灣 10:00 → Threads token 續期
     if (event.cron === '0 1 * * *') {
       ctx.waitUntil(runGeneration(env));
+    } else if (event.cron === '0 2 * * 1') {
+      ctx.waitUntil(runTokenMaintenance(env));
     } else {
       ctx.waitUntil(runPublishSlot(env));
     }
@@ -49,6 +53,13 @@ async function handleLineEvents(env, raw) {
   let body;
   try { body = JSON.parse(raw); } catch { return; }
   for (const ev of body.events ?? []) {
+    // 傳文字訊息給機器人 → 回你的 userId（用來設定 LINE_ADMIN_USER_ID）
+    if (ev.type === 'message' && ev.message?.type === 'text') {
+      await reply(env, ev.replyToken,
+        `你的 LINE userId 是：\n${ev.source?.userId ?? '(取不到)'}\n\n把它設成環境變數 LINE_ADMIN_USER_ID，草稿就會推到這裡。`);
+      continue;
+    }
+
     if (ev.type !== 'postback') continue;
     const { action, id } = parsePostback(ev.postback.data);
     const post = await getPost(env, id);

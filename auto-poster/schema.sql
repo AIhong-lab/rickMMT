@@ -18,3 +18,10 @@ CREATE TABLE IF NOT EXISTS posts (
 
 CREATE INDEX IF NOT EXISTS idx_posts_status  ON posts(status);
 CREATE INDEX IF NOT EXISTS idx_posts_created ON posts(created_at);
+
+-- 執行期設定（例如自動續期後的最新 Threads token）
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT,
+  updated_at TEXT
+);
