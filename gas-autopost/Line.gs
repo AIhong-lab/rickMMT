@@ -1,5 +1,5 @@
 // ===== 檔名：Line.gs =====
-// v1 — LINE Messaging API：推草稿（兩顆按鈕）、純文字通知、回覆、簽章驗證
+// v2 — LINE Messaging API：推草稿（兩顆按鈕）、純文字通知、回覆、解析 postback
 // ⚠️ 端點與 payload 格式請對照 LINE Messaging API 官方文件確認
 
 const LINE_PUSH_URL = 'https://api.line.me/v2/bot/message/push';
